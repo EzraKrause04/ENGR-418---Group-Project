@@ -23,7 +23,7 @@ anything it can't know (especially "Changed by hand").
 ## Entries
 
 ### 2026-11-23: Build step 1, scaffold
-- **At the keyboard:** the student working on the account owner's machine (_confirm: Rater A or B_)
+- **At the keyboard:** Rater A
 - **Tool:** Claude Code (Claude Opus 5.5)
 - **Task:** create the repository layout from the brief (section 5), pinned `requirements.txt`, `pyproject.toml`, `Makefile` (all section-5 targets plus `schedule`, `label`, `circles`, `env`), `configs/default.yaml`, `.gitignore`, and placeholder modules and scripts for later build steps.
 - **Key prompts (summary):** the student attached the project brief (now `CLAUDE.md`) and asked Claude Code to start the build order. Claude Code asked who was at the keyboard and for the GitHub remote. The student supplied the team repo URL, and Claude Code added it as an SSH remote, as the brief requires.
