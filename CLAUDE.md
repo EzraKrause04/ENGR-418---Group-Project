@@ -511,4 +511,7 @@ The team then decides:
 - **Remote:** `origin` = `git@github.com:EzraKrause04/ENGR-418---Group-Project.git` (SSH). Push only when the team asks.
 - **Pinned majors are new:** pandas 3, OpenCV 5, Pillow 13, Gradio 6. In Gradio 6, `theme`/`css`/`head` go to `launch()`, not `Blocks()`. `gr.Image` takes `buttons=[...]` and `format=`.
 - **Labels:** `labels/rater_<X>.csv` is append-only; the last row per `cup_id` wins (`latte.labels.latest_labels`). Final labels come from `latte.labels.mean_labels`.
-- **Build order status:** steps 1–3 done (2026-11-23). Next: step 4 (geometry and preprocessing).
+- **Circles:** `data/circles.csv` is append-only (last row per cup wins) and holds only circles a student checked: `accepted` (auto circle frozen as accepted) or `manual` (3+ clicked points, least-squares fit). `latte.geometry.resolve_circle` prefers a saved circle when its `img_w`/`img_h` match the photo. Detection = innermost dark-to-light radial edge ring (`geometry.edge_polarity`); `confidence` = edge support in [0, 1]. `radius_frac_min` is 0.10, not the brief's example 0.20, because a cup at 30 cm with a 1x lens is about r = 0.15 x min(H, W).
+- **Dev images:** `make qa ARGS=--dev` reads `data/dev_external/` (recursively) and writes to `results/qa/dev/`, which is gitignored.
+- **Tests:** synthetic cup photos come from `tests/synth.py` (`cup_photo`, `heart_polygon`); reuse them for the step-5 feature tests.
+- **Build order status:** steps 1–4 done (step 4 on 2026-11-24, verified on synthetic photos only). Step 4's acceptance (students check QA sheets on pilot and dev images) is still open until those photos exist. Next: step 5 (segmentation and features).

@@ -4,8 +4,8 @@ A phone-photo tool that scores a latte-art heart, names the features that cost i
 
 ENGR 418 (Applied Machine Learning for Engineers), UBC Okanagan, team project.
 
-> **Status (2026-11-23):** build steps 1–3 done: repo scaffold, data-collection tooling (`make_schedule`, `ingest`), blind labelling tool and agreement script.
-> The image pipeline, models and demo come next. This README is completed in build step 12.
+> **Status (2026-11-24):** build steps 1–4 done: repo scaffold, data-collection tooling (`make_schedule`, `ingest`), blind labelling tool and agreement script, liquid-circle detection with a manual check tool, crop/mask and QA sheets.
+> Segmentation, features, models and the demo come next. This README is completed in build step 12.
 
 ## Setup
 
@@ -27,6 +27,7 @@ The Makefile always calls `.venv/bin/python` directly, so you never need to acti
 |---|---|---|
 | Before pouring | `make schedule SESSION=S05 POURER=A BLOCKS=2` | Randomized cup order (blocks of 6, every cell once per block), appended to `data/cup_log.csv` |
 | After pouring | copy photos to `data/raw_full/`, fill in the cup log, then `make ingest` | Strips EXIF/GPS, resizes to 1024 px, writes `data/raw/`, checks photos ↔ log, prints counts per cell |
+| After ingest | `make qa`, then `make circles` | Contact sheets of every detected liquid circle (`results/qa/`), then a browser tool (http://127.0.0.1:7861) to accept or fix each one |
 | Next day | `make label` | Blind labelling in the browser (http://127.0.0.1:7860) |
 | After calibration | `make agree` | Weighted κ, Spearman ρ and mean absolute difference per rubric dimension |
 
@@ -39,6 +40,7 @@ configs/default.yaml   every path, seed (42) and threshold
 data/raw/              ingested photos: EXIF-stripped, 1024 px (committed)
 data/raw_full/         original photos (gitignored; team shared drive)
 data/cup_log.csv       one row per cup
+data/circles.csv       liquid circles checked by eye (append-only; last row per cup wins)
 labels/rater_<X>.csv   append-only rater labels (last row per cup wins)
 src/latte/             library code (io, schedule, labels, evaluate, ...)
 scripts/               command-line steps, one per Makefile target

@@ -71,8 +71,15 @@ Starting foam-gain targets (recalibrate after the pilot and update `configs/defa
    make ingest
    ```
    Fix every `ERROR` it prints and re-run. Mid-session, `--allow-missing-photos` tolerates planned rows not poured yet.
-3. Commit `data/raw/` and `data/cup_log.csv`. Never commit `data/raw_full/`.
-4. Label (each rater, ideally the next day): `make label`.
+3. Check the liquid circles. Every usable photo needs a circle that one of you has checked by eye:
+   ```bash
+   make qa        # contact sheets in results/qa/: red = low confidence, amber = not checked yet
+   make circles   # http://127.0.0.1:7861: A accepts the automatic circle; to fix one, click 3+ points on the
+                  # liquid edge (crema meets cup wall, not the outer rim) and press S
+   ```
+   Run `make qa` again afterwards: every tile should be green.
+4. Commit `data/raw/`, `data/cup_log.csv`, `data/circles.csv` and `results/qa/`. Never commit `data/raw_full/`.
+5. Label (each rater, ideally the next day): `make label`.
 
 ## Editing `data/cup_log.csv`
 

@@ -59,3 +59,40 @@ anything it can't know (especially "Changed by hand").
     - a fast double Enter saves only once.
   - Browser testing found two bugs, both now fixed: each number key advanced two rows, and Gradio served the image as lossy WebP (it is now PNG).
 - **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-24: Push to GitHub and SSH key set-up
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5)
+- **Task:** get `main` onto the team repo over SSH.
+- **Key prompts (summary):** the student pasted the repo URL and asked to push. Claude Code diagnosed why the push failed (GitHub rejected the key; the old 2048-bit RSA key was too short to add). It suggested a new Ed25519 key, which the student generated and added to GitHub themselves.
+- **Files created or changed:** none in the repo. Four commits were pushed (`75fda71..3dac715`).
+- **Verification:** `ssh -T git@github.com` authenticated; `git ls-remote` showed `main` at `3dac715`; `make test` passed before the push.
+- **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-24: Build step 4, geometry and preprocessing
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5)
+- **Task:**
+  - liquid-surface circle detection (`latte.geometry`: Hough centre candidates, the innermost dark-to-light radial edge ring, a trimmed least-squares refit, and confidence = edge support);
+  - the manual override and check tool (`app/annotate_circle.py`, `make circles`);
+  - crop/mask/resize to 512 × 512 with a 4% radius shrink (`latte.preprocess`);
+  - QA contact sheets (`scripts/qa_sheets.py`, `make qa`, `make qa ARGS=--dev`).
+- **Key prompts (summary):** "Start step 4", i.e. implement sections 8.1 and 8.2 of the brief.
+- **Files created or changed:**
+  - `src/latte/geometry.py`, `src/latte/preprocess.py`, `src/latte/overlay.py`, `src/latte/io.py` (`load_rgb`);
+  - `scripts/qa_sheets.py`, `app/annotate_circle.py`;
+  - `configs/default.yaml` (geometry settings), `Makefile`, `.gitignore` (`results/qa/dev/`);
+  - `docs/protocol.md` (circle check after ingest), `README.md`, `CLAUDE.md` (working notes);
+  - `tests/synth.py`, `tests/test_geometry.py`, `tests/test_preprocess.py`, `tests/test_qa_and_annotate.py`.
+- **Verification:**
+  - `make test` passes (56 tests).
+  - On synthetic photos, the detector finds the liquid edge, not the lip or the outer rim, to within 1% of r. This holds for small, large, off-centre, noisy and portrait cups, and for cups cut off by the frame edge. A photo with no cup gets confidence 0.
+  - Claude Code drove the circle tool in a browser on 8 synthetic photos:
+    - three clicks on the edge gave r = 122.9 px (true value 122.9) in the zoomed view, and 99.9 px (true 99.8) in the whole-photo view;
+    - the A, S, C, F and arrow keys work; the list puts low-confidence photos first;
+    - checked photos leave the "Not checked yet" list;
+    - saving without choosing a checker is refused.
+  - QA sheets were inspected visually.
+  - **Not yet verified on real photos:** there are no pilot or dev images yet. Step 4 is only *done* once the students have checked the QA sheets on the pilot and dev images.
+- **Deviation from the brief:** `geometry.radius_frac_min` is 0.10 rather than the brief's example of 0.20. A ~9 cm cup shot from 30 cm with a 1× lens has r ≈ 0.15 × min(H, W).
+- **Changed by hand afterwards:** _(student to fill in)_
