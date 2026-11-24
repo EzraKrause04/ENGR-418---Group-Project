@@ -5,6 +5,8 @@
 #                                   plan a randomized session, append it to data/cup_log.csv
 #   make ingest                     data/raw_full -> data/raw (EXIF stripped, 1024 px)
 #   make label                      open the blind labelling tool (Gradio)
+#   make qa                         contact sheets of every cup circle and crop (ARGS=--dev: dev set)
+#   make circles                    check each circle by eye: accept it or click a fix
 #   make agree                      inter-rater agreement tables
 #   make test                       run the test suite (must pass before modelling)
 #   make all                        regenerate every table and figure from data/raw
@@ -44,7 +46,7 @@ ARGS    ?=
         agree gonogo train final figures demo test env all clean
 
 help:
-	@sed -n '2,13p' Makefile | sed 's/^# \{0,1\}//'
+	@sed -n '2,15p' Makefile | sed 's/^# \{0,1\}//'
 
 # --- environment ------------------------------------------------------------
 
@@ -82,7 +84,7 @@ label: venv-check
 	$(PYTHON) app/label.py --config $(CONFIG)
 
 circles: venv-check
-	$(PYTHON) app/annotate_circle.py --config $(CONFIG)
+	$(PYTHON) app/annotate_circle.py --config $(CONFIG) $(ARGS)
 
 agree: venv-check
 	$(PYTHON) scripts/agreement.py --config $(CONFIG)
@@ -90,7 +92,7 @@ agree: venv-check
 # --- image pipeline and modelling ------------------------------------------
 
 qa: venv-check
-	$(PYTHON) scripts/qa_sheets.py --config $(CONFIG)
+	$(PYTHON) scripts/qa_sheets.py --config $(CONFIG) $(ARGS)
 
 features: venv-check
 	$(PYTHON) scripts/build_features.py --config $(CONFIG)

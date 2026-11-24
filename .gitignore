@@ -3,6 +3,8 @@
 data/raw_full/
 # Licensed external images: pipeline development only, never redistributed.
 data/dev_external/
+# QA sheets made from those images (same licence restriction).
+results/qa/dev/
 
 # --- Environment -------------------------------------------------------------
 .venv/
