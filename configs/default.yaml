@@ -59,9 +59,23 @@ labelling:
 
 # --- Image pipeline (section 8); tuned in build steps 4-5 ---------------------
 geometry:
-  radius_frac_min: 0.20            # Hough radius range as a fraction of min(H, W)
+  # Liquid radius range as a fraction of min(H, W). The brief's example lower
+  # bound was 0.20, but a ~9 cm cup shot from 30 cm with a 1x phone lens has
+  # r of about 0.15 x min(H, W), so 0.10 leaves room. Tighten after the pilot.
+  radius_frac_min: 0.10
   radius_frac_max: 0.50
-  low_confidence: 0.5              # below this the circle is flagged for review
+  low_confidence: 0.5              # edge support below this -> flagged for review
+  edge_polarity: dark_inside       # dark_inside: crema darker than the cup wall (light cups);
+                                   # bright_inside: dark cups; any: either
+  work_size: 512                   # longest side for the candidate search, px
+  blur_sigma: 2.0                  # Gaussian blur before edge finding, px
+  n_angles: 360                    # rays around the circle
+  min_edge: 1.0                    # minimum radial dL*/px to count as an edge
+  edge_frac: 0.25                  # ... or this fraction of the image's 98th-percentile gradient
+  min_support: 0.3                 # a candidate radius needs edges on 30% of the rays
+  peak_ratio: 0.7                  # innermost peak with >= 70% of the best peak's support wins
+  inlier_tol: 0.02                 # edge within 2% of r counts as on the circle
+  hough_candidates: 8              # centre candidates taken from HoughCircles
 
 preprocess:
   size: 512                        # crop is resized to size x size

@@ -13,6 +13,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Iterable
 
+import numpy as np
 import pandas as pd
 import yaml
 from PIL import Image, ImageOps
@@ -160,6 +161,12 @@ def strip_and_resize(src: Path, dst: Path, max_side: int, quality: int = 95) -> 
         if os.path.exists(tmp):
             os.remove(tmp)
     return clean.size
+
+
+def load_rgb(path: Path) -> np.ndarray:
+    """An image file as an RGB uint8 array of shape (H, W, 3)."""
+    with Image.open(path) as im:
+        return np.asarray(im.convert("RGB")).copy()
 
 
 def has_metadata(path: Path) -> bool:
