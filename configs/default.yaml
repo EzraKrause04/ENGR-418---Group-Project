@@ -1,0 +1,104 @@
+# Latte Coach -- the single source of truth for paths, seeds and thresholds.
+# Scripts read this file; nothing below should be hard-coded elsewhere.
+
+# Repository root, relative to this file. All `paths` are relative to it.
+root: ..
+
+seed: 42
+
+paths:
+  raw_full: data/raw_full          # original phone photos (gitignored)
+  raw: data/raw                    # ingested photos (committed)
+  dev_external: data/dev_external  # licensed dev-only images (gitignored)
+  cup_log: data/cup_log.csv
+  circles: data/circles.csv
+  labels_dir: labels               # labels/rater_<X>.csv
+  rubric: docs/rubric.md
+  features_dir: features
+  models_dir: models
+  runs_dir: results/runs
+  tables_dir: results/tables
+  figures_dir: results/figures
+  qa_dir: results/qa
+  env_record: results/env.txt
+
+# --- Experimental design (section 6.1) --------------------------------------
+design:
+  milk_conditions: [thin, good, thick]
+  dropin: [on_time, late]
+  target_per_cell: 20
+  pourers: [A, B]                  # other pourer IDs need --guest (written OK required)
+  session_pattern: '^S\d{2}$'      # S00 = pilot, S01, S02, ...
+  exclude_sessions: []             # e.g. [S00] to keep the pilot out of training/eval
+  # Starting targets; recalibrate after the pilot (Milestone 1) and log the change.
+  milk_targets:
+    thin:  {aeration: "about 1 s", foam_gain: "under 10%"}
+    good:  {aeration: "normal", foam_gain: "20-30%"}
+    thick: {aeration: "long", foam_gain: "45% or more"}
+  dropin_targets:
+    on_time: "cup about 1/2 full"
+    late: "cup about 3/4 full"
+
+# --- Ingest (section 6.5) -----------------------------------------------------
+ingest:
+  max_side: 1024                   # longest side after resize, px
+  jpeg_quality: 95
+  extensions: [.jpg, .jpeg, .png]
+
+# --- Labelling and agreement (section 7) -------------------------------------
+labelling:
+  raters: [A, B]
+  dimensions: [contrast, definition, symmetry, centring, surface, overall]
+  skip_log_unusable: true          # don't show cups marked usable=n in the cup log
+  calibration_n: 30                # first N cups (sorted by cup_id) for the calibration round
+  kappa_target: 0.6                # weighted kappa on Overall
+  kappa_revise_below: 0.4          # below this: review disagreements, revise anchors, relabel
+  disagreement_flag: 2             # |A - B| >= this on any dimension -> listed for review
+  bootstrap_n: 2000                # resamples for kappa confidence intervals
+  port: 7860
+
+# --- Image pipeline (section 8); tuned in build steps 4-5 ---------------------
+geometry:
+  radius_frac_min: 0.20            # Hough radius range as a fraction of min(H, W)
+  radius_frac_max: 0.50
+  low_confidence: 0.5              # below this the circle is flagged for review
+
+preprocess:
+  size: 512                        # crop is resized to size x size
+  radius_shrink: 0.04              # shrink radius by 4% to drop the rim edge
+
+segment:
+  method: kmeans                   # otsu | kmeans -- choose from the pilot QA sheets
+  morph_disk_radius: 3
+  min_component_frac: 0.005        # of the circle area
+
+features:
+  symmetry_angle_step_deg: 2
+  edge_band_px: 2
+  log_sigma_min: 1
+  log_sigma_max: 4
+
+# --- Embeddings (section 9) ---------------------------------------------------
+embed:
+  model: vit_small_patch14_dinov2.lvd142m
+  fallback: resnet50
+  rotations: [0, 90, 180, 270]
+
+# --- Models and evaluation (section 10) --------------------------------------
+cv:
+  inner_folds: 3
+
+grids:
+  ridge_alpha: [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+  pca_components: [5, 10, 20]
+  logreg_C: [0.01, 0.1, 1.0, 10.0, 100.0]
+  rf_n_estimators: [200, 500]
+  rf_max_depth: [3, 5, null]
+
+# --- Feedback engine (section 11) ---------------------------------------------
+feedback:
+  score_round: 0.5
+  min_contribution: -0.1           # score points; fixes shown only below this
+  n_fixes: 2
+  milk_prob_threshold: 0.6         # retuned so out-of-fold precision >= milk_min_precision
+  milk_min_precision: 0.7

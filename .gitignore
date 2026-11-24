@@ -1,0 +1,38 @@
+# --- Data that must never be committed -------------------------------------
+# Original phone photos (with EXIF/GPS) live in the team shared drive only.
+data/raw_full/
+# Licensed external images: pipeline development only, never redistributed.
+data/dev_external/
+
+# --- Environment -------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.gradio/
+flagged/
+
+# --- Large or regenerable artefacts -------------------------------------------
+models/*.joblib
+# torch / timm download caches if someone points them inside the repo
+.cache/
+
+# --- LaTeX build products ------------------------------------------------------
+report/*.aux
+report/*.log
+report/*.out
+report/*.bbl
+report/*.blg
+report/*.synctex.gz
+report/*.fdb_latexmk
+report/*.fls
+report/*.pdf
+
+# --- OS / editor ---------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,15 @@
+# Pinned top-level dependencies (Python 3.11). The full resolved environment
+# of every run is recorded separately in results/env.txt (pip freeze).
+numpy==2.4.6
+pandas==3.1.1
+scipy==1.17.1
+scikit-learn==1.9.1
+opencv-python-headless==5.1.0.95
+scikit-image==0.26.0
+matplotlib==3.11.2
+pillow==13.0.0
+pyyaml==6.0.4
+torch==2.15.0
+timm==1.0.31
+gradio==6.32.0
+pytest==9.2.0
