@@ -96,3 +96,38 @@ anything it can't know (especially "Changed by hand").
   - **Not yet verified on real photos:** there are no pilot or dev images yet. Step 4 is only *done* once the students have checked the QA sheets on the pilot and dev images.
 - **Deviation from the brief:** `geometry.radius_frac_min` is 0.10 rather than the brief's example of 0.20. A ~9 cm cup shot from 30 cm with a 1× lens has r ≈ 0.15 × min(H, W).
 - **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-24: Sandbox for trying step 4
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5)
+- **Task:** "How can we test it now?" Claude Code set up a gitignored sandbox project at `.cache/sandbox/` holding synthetic cup photos. The student tried `make qa` and `make circles` on it (`make … CONFIG=.cache/sandbox/configs/default.yaml`).
+- **Files created or changed:** none in the repo. The sandbox lives under the gitignored `.cache/`.
+- **Verification:** the student ran `make qa` on the sandbox and accepted a circle in the tool.
+- **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-25: Build step 5, segmentation and features
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5)
+- **Task:**
+  - milk/crema segmentation (`latte.segment`): Otsu on L* and k-means (k = 2) on L\*a\*b\*, each followed by open/close and small-component removal;
+  - the ten handcrafted features of section 8.4 (`latte.features`), each a pure function with its formula in the docstring;
+  - `scripts/build_features.py` (`make features`), which writes `features/features.csv` plus QA overlays (milk outline, centroid, symmetry axis) and an Otsu vs k-means comparison sheet.
+- **Key prompts (summary):** "Start step 5", i.e. implement sections 8.3–8.5 of the brief.
+- **Files created or changed:**
+  - `src/latte/segment.py`, `src/latte/features.py`, `src/latte/overlay.py` (outline, axis and point drawing), `src/latte/preprocess.py` (the mask now leaves out parts of the disk outside the photo);
+  - `scripts/build_features.py`, `configs/default.yaml` (segment and feature settings), `Makefile`, `README.md`, `CLAUDE.md`;
+  - `tests/synth.py` (`heart_crop`; hearts centred by area centroid), `tests/conftest.py`, `tests/test_features.py`, `tests/test_build_features.py`.
+- **Verification:**
+  - `make test` passes (94 tests). That includes the five checks section 8.5 requires: a centred heart has symmetry_iou > 0.9 and centre_offset < 0.05; shifting the heart raises centre_offset; blur lowers edge_sharpness; darker milk lowers contrast_dL; dark dots raise bubble_density.
+  - Both segmentation methods recover the synthetic heart with IoU > 0.95.
+  - `make features` ran on the 13-photo sandbox, and the overlays and comparison sheets were inspected.
+  - Three problems turned up during checking and were fixed:
+    1. bubble_density counted the milk/crema edge as bubbles, so the high-pass is now computed within each region;
+    2. photo noise that the 512 px resampling enlarges was counted as bubbles, so the LoG threshold now adapts to each photo's noise;
+    3. for cups cut off by the frame, the black padding counted as crema, so the mask now leaves out pixels outside the photo.
+  - **Not yet verified on real photos.** Step 5 is only *done* once the students have looked at the overlays on the pilot photos and chosen `segment.method` (and checked `log_threshold`).
+- **Decisions to review:**
+  - boundary_roughness uses the Crofton perimeter, which gives 1.00 for a disk; skimage's default perimeter gives 1.11.
+  - `symmetry_angle` is stored but kept out of the model features, because it is only the heart's orientation.
+  - texture_energy is computed on the milk eroded by 2 px, so the milk/crema edge itself is left out.
+- **Changed by hand afterwards:** _(student to fill in)_
