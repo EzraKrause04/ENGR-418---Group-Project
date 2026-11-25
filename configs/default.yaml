@@ -98,6 +98,14 @@ features:
   highpass_sigma: 8.0              # Gaussian for the region-wise high-pass before blob finding, px
   texture_erode_px: 2              # erode the milk by this before texture_energy
 
+# --- Go/no-go check (section 16) ----------------------------------------------
+gonogo:
+  min_cups: 30                     # the brief's threshold for running the check
+  n_permutations: 200              # within-session label shuffles for the p-value
+  alpha: 0.05
+  narrow_max_score: 2.0            # "narrow quality range": almost all mean Overall <= this ...
+  narrow_frac: 0.9                 # ... i.e. at least this fraction of doubly-labelled cups
+
 # --- Embeddings (section 9) ---------------------------------------------------
 embed:
   model: vit_small_patch14_dinov2.lvd142m

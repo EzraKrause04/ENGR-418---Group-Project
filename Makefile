@@ -8,6 +8,7 @@
 #   make qa                         contact sheets of every cup circle and crop (ARGS=--dev: dev set)
 #   make circles                    check each circle by eye: accept it or click a fix
 #   make features                   segment milk vs crema, handcrafted features -> features/features.csv
+#   make gonogo                     go/no-go check (section 16): box plots, LOSO accuracy, score spread
 #   make agree                      inter-rater agreement tables
 #   make test                       run the test suite (must pass before modelling)
 #   make all                        regenerate every table and figure from data/raw
@@ -47,7 +48,7 @@ ARGS    ?=
         agree gonogo train final figures demo test env all clean
 
 help:
-	@sed -n '2,16p' Makefile | sed 's/^# \{0,1\}//'
+	@sed -n '2,17p' Makefile | sed 's/^# \{0,1\}//'
 
 # --- environment ------------------------------------------------------------
 
