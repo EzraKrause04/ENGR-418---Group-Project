@@ -6,11 +6,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
 import yaml
 from PIL import Image
+from synth import cup_photo
 
-from latte.io import DEFAULT_CONFIG, REPO_ROOT, load_config
+from latte.io import DEFAULT_CONFIG, REPO_ROOT, cfg_path, load_config
 
 
 @pytest.fixture
@@ -44,3 +46,22 @@ def run_script(script: str, project: Path, *args: str) -> subprocess.CompletedPr
 def tiny_jpeg(path: Path, size: tuple[int, int] = (16, 16), color=(120, 80, 40)) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     Image.new("RGB", size, color).save(path, "JPEG")
+
+
+def write_photo(path: Path, img: np.ndarray) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(img).save(path, quality=92)
+
+
+@pytest.fixture
+def photos(cfg) -> dict[str, object]:
+    """Three cups in data/raw: a clean one, an off-centre one, and a photo with no cup."""
+    raw = cfg_path(cfg, "raw")
+    truth = {}
+    for cup, kw in {"S00-C01": {}, "S00-C02": {"offset": (0.1, 0.05), "r_frac": 0.13, "seed": 1}}.items():
+        img, t = cup_photo(**kw)
+        write_photo(raw / f"{cup}.jpg", img)
+        truth[cup] = t
+    rng = np.random.default_rng(0)
+    write_photo(raw / "S00-C03.jpg", np.clip(rng.normal(140, 12, (768, 1024, 3)), 0, 255).astype(np.uint8))
+    return truth

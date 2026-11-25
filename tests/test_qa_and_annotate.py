@@ -8,31 +8,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-from conftest import run_script
-from PIL import Image
+from conftest import run_script, write_photo
 from synth import cup_photo
 
 from latte.geometry import append_circle, circles_path, read_circles
 from latte.io import REPO_ROOT, cfg_path, empty_cup_log, write_cup_log
-
-
-def write_photo(path: Path, img: np.ndarray) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    Image.fromarray(img).save(path, quality=92)
-
-
-@pytest.fixture
-def photos(cfg) -> dict[str, object]:
-    """Three cups in data/raw: a clean one, an off-centre one, and a photo with no cup."""
-    raw = cfg_path(cfg, "raw")
-    truth = {}
-    for cup, kw in {"S00-C01": {}, "S00-C02": {"offset": (0.1, 0.05), "r_frac": 0.13, "seed": 1}}.items():
-        img, t = cup_photo(**kw)
-        write_photo(raw / f"{cup}.jpg", img)
-        truth[cup] = t
-    rng = np.random.default_rng(0)
-    write_photo(raw / "S00-C03.jpg", np.clip(rng.normal(140, 12, (768, 1024, 3)), 0, 255).astype(np.uint8))
-    return truth
 
 
 def test_qa_sheets_end_to_end(project, cfg, photos):

@@ -7,6 +7,7 @@
 #   make label                      open the blind labelling tool (Gradio)
 #   make qa                         contact sheets of every cup circle and crop (ARGS=--dev: dev set)
 #   make circles                    check each circle by eye: accept it or click a fix
+#   make features                   segment milk vs crema, handcrafted features -> features/features.csv
 #   make agree                      inter-rater agreement tables
 #   make test                       run the test suite (must pass before modelling)
 #   make all                        regenerate every table and figure from data/raw
@@ -46,7 +47,7 @@ ARGS    ?=
         agree gonogo train final figures demo test env all clean
 
 help:
-	@sed -n '2,15p' Makefile | sed 's/^# \{0,1\}//'
+	@sed -n '2,16p' Makefile | sed 's/^# \{0,1\}//'
 
 # --- environment ------------------------------------------------------------
 
@@ -95,7 +96,7 @@ qa: venv-check
 	$(PYTHON) scripts/qa_sheets.py --config $(CONFIG) $(ARGS)
 
 features: venv-check
-	$(PYTHON) scripts/build_features.py --config $(CONFIG)
+	$(PYTHON) scripts/build_features.py --config $(CONFIG) $(ARGS)
 
 embed: venv-check
 	$(PYTHON) -m latte.embed --config $(CONFIG)

@@ -70,6 +70,40 @@ def draw_cross(img: np.ndarray, view: View, x: float, y: float, color: tuple[int
     cv2.line(img, (u, v - size), (u, v + size), color, width, cv2.LINE_AA)
 
 
+YELLOW = (255, 214, 0)  # symmetry axis
+
+
+def draw_outline(img: np.ndarray, mask: np.ndarray, color: tuple[int, int, int], width: int = 2) -> None:
+    """Draw the outline of a boolean mask onto img (which may be a resized copy of the mask's frame)."""
+    k = img.shape[1] / mask.shape[1]
+    contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    scaled = [np.round((c.astype(np.float64) + 0.5) * k - 0.5).astype(np.int32) for c in contours]
+    cv2.drawContours(img, scaled, -1, color, width, cv2.LINE_AA)
+
+
+def draw_axis(img: np.ndarray, frame: int, x: float, y: float, angle_deg: float, half_len: float,
+              color: tuple[int, int, int] = YELLOW, width: int = 1) -> None:
+    """Draw a line through (x, y) at ``angle_deg`` (image coordinates), given in a ``frame``-px-wide frame."""
+    if not all(np.isfinite([x, y, angle_deg])):
+        return
+    k = img.shape[1] / frame
+    t = np.deg2rad(angle_deg)
+    dx, dy = np.cos(t) * half_len, np.sin(t) * half_len
+    p0 = (round(((x - dx) + 0.5) * k - 0.5), round(((y - dy) + 0.5) * k - 0.5))
+    p1 = (round(((x + dx) + 0.5) * k - 0.5), round(((y + dy) + 0.5) * k - 0.5))
+    cv2.line(img, p0, p1, color, width, cv2.LINE_AA)
+
+
+def draw_point(img: np.ndarray, frame: int, x: float, y: float, color: tuple[int, int, int], size: int = 5) -> None:
+    """A small cross at (x, y), given in a ``frame``-px-wide frame."""
+    if not all(np.isfinite([x, y])):
+        return
+    k = img.shape[1] / frame
+    u, v = round((x + 0.5) * k - 0.5), round((y + 0.5) * k - 0.5)
+    cv2.line(img, (u - size, v), (u + size, v), color, 2, cv2.LINE_AA)
+    cv2.line(img, (u, v - size), (u, v + size), color, 2, cv2.LINE_AA)
+
+
 def font(size: int = 14) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     try:
         return ImageFont.load_default(size=size)
