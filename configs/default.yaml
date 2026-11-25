@@ -82,15 +82,21 @@ preprocess:
   radius_shrink: 0.04              # shrink radius by 4% to drop the rim edge
 
 segment:
-  method: kmeans                   # otsu | kmeans -- choose from the pilot QA sheets
-  morph_disk_radius: 3
-  min_component_frac: 0.005        # of the circle area
+  method: kmeans                   # otsu | kmeans -- choose from the pilot seg_compare sheets
+  morph_disk_radius: 3             # open then close with this disk, px
+  min_component_frac: 0.005        # drop milk components smaller than this fraction of the disk
+  kmeans_fit_pixels: 20000         # seeded pixel sample k-means is fitted on
 
 features:
-  symmetry_angle_step_deg: 2
-  edge_band_px: 2
-  log_sigma_min: 1
+  symmetry_angle_step_deg: 2       # reflection angles 0, 2, ..., 178
+  edge_band_px: 2                  # band around the milk outline for edge_sharpness
+  log_sigma_min: 1                 # LoG blob scales for bubble_density, px
   log_sigma_max: 4
+  log_num_sigma: 4
+  log_threshold: 3.0               # LoG response (L* units) a blob needs; recheck on the pilot photos
+  log_noise_k: 6.0                 # ... or this many robust SDs of the photo's own LoG noise, if higher
+  highpass_sigma: 8.0              # Gaussian for the region-wise high-pass before blob finding, px
+  texture_erode_px: 2              # erode the milk by this before texture_energy
 
 # --- Embeddings (section 9) ---------------------------------------------------
 embed:
