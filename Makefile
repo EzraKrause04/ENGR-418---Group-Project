@@ -9,6 +9,7 @@
 #   make circles                    check each circle by eye: accept it or click a fix
 #   make features                   segment milk vs crema, handcrafted features -> features/features.csv
 #   make gonogo                     go/no-go check (section 16): box plots, LOSO accuracy, score spread
+#   make weights / make embed       fetch DINOv2 weights once (online); embed every cup -> features/emb_*
 #   make agree                      inter-rater agreement tables
 #   make test                       run the test suite (must pass before modelling)
 #   make all                        regenerate every table and figure from data/raw
@@ -44,11 +45,11 @@ POURER  ?=
 BLOCKS  ?= 2
 ARGS    ?=
 
-.PHONY: help setup venv-check schedule ingest label circles qa features embed \
+.PHONY: help setup venv-check schedule ingest label circles qa features embed weights \
         agree gonogo train final figures demo test env all clean
 
 help:
-	@sed -n '2,17p' Makefile | sed 's/^# \{0,1\}//'
+	@sed -n '2,18p' Makefile | sed 's/^# \{0,1\}//'
 
 # --- environment ------------------------------------------------------------
 
@@ -100,7 +101,11 @@ features: venv-check
 	$(PYTHON) scripts/build_features.py --config $(CONFIG) $(ARGS)
 
 embed: venv-check
-	$(PYTHON) -m latte.embed --config $(CONFIG)
+	$(PYTHON) -m latte.embed --config $(CONFIG) $(ARGS)
+
+# Download / check the embedding model weights once while online (about 90 MB for DINOv2 ViT-S/14).
+weights: venv-check
+	$(PYTHON) -m latte.embed --config $(CONFIG) --fetch
 
 gonogo: venv-check
 	$(PYTHON) scripts/go_no_go.py --config $(CONFIG)

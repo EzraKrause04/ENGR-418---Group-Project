@@ -108,9 +108,11 @@ gonogo:
 
 # --- Embeddings (section 9) ---------------------------------------------------
 embed:
-  model: vit_small_patch14_dinov2.lvd142m
-  fallback: resnet50
-  rotations: [0, 90, 180, 270]
+  model: vit_small_patch14_dinov2.lvd142m   # timm name; weights come from huggingface.co/timm
+  fallback: resnet50               # torchvision ResNet-50 (ImageNet) if the model can't be loaded
+  rotations: [0, 90, 180, 270]     # embedding = mean over these rotations of the crop
+  pretrained: true                 # false only in tests (random weights, no download)
+  threads: 0                       # torch CPU threads for inference; 0 = all cores
 
 # --- Models and evaluation (section 10) --------------------------------------
 cv:
