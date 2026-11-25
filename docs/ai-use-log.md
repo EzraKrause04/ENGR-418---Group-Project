@@ -131,3 +131,32 @@ anything it can't know (especially "Changed by hand").
   - `symmetry_angle` is stored but kept out of the model features, because it is only the heart's orientation.
   - texture_energy is computed on the milk eroded by 2 px, so the milk/crema edge itself is left out.
 - **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-25: Build step 6, go/no-go script
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5), with a multi-agent review workflow
+- **Task:** `scripts/go_no_go.py` (`make gonogo`), implementing section 16. It produces:
+  - box plots of every feature by milk condition and by drop-in;
+  - leave-one-session-out balanced accuracy of logistic regression for B1 and B2, with a within-session permutation p-value;
+  - per-feature Kruskal-Wallis and Mann-Whitney tests with Holm correction;
+  - a histogram of the mean Overall score;
+  - decision hints that follow section 16's rules.
+
+  Also `src/latte/data.py`, a shared loader that joins features, cup log and labels and applies the exclusions in section 10.1.
+- **Key prompts (summary):** "Start step 6".
+- **Files created or changed:** `src/latte/data.py`, `scripts/go_no_go.py`, `tests/test_go_no_go.py`, `configs/default.yaml` (the `gonogo` section), `Makefile`, `README.md`, `CLAUDE.md`.
+- **Verification:**
+  - `make test` passes (105 tests). They run fake studies with and without planted signal, a narrow score range, too few sessions, an absent class, an all-missing feature, a broken cup log, and the exclusion rules.
+  - The script ran on a fake 48-cup study: it found the planted signals (B1 0.73 against chance 0.33, p = 0.005), and the figures were inspected.
+  - An independent review ran 3 reviewers with different lenses, and 2 skeptics tried to refute each finding. It confirmed 10 findings, all now fixed:
+    - measured foam gain was counted as a "photo feature that separates conditions" and inflated the Holm family;
+    - a cup one rater ticked unusable stayed in until the other rater labelled it;
+    - chance was wrong when a class was absent;
+    - the rank-biserial sign ran against the usual convention;
+    - the decision hint ignored the "features separate" half of the rule;
+    - a duplicated cup-log row crashed the script with an unreadable error;
+    - a pandas fill warning appeared when no cup had both raters' labels.
+
+    Unverified low-severity items were fixed as well: warning floods from all-missing features, an empty histogram, no notice about unchecked circles, and a crash in the path print.
+  - **Not yet run on real data.** It needs at least 30 usable cups (Fri Nov 27).
+- **Changed by hand afterwards:** _(student to fill in)_
