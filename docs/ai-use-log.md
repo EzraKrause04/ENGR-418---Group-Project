@@ -160,3 +160,37 @@ anything it can't know (especially "Changed by hand").
     Unverified low-severity items were fixed as well: warning floods from all-missing features, an empty histogram, no notice about unchecked circles, and a crash in the path print.
   - **Not yet run on real data.** It needs at least 30 usable cups (Fri Nov 27).
 - **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-25: Build step 7, embeddings
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5), with a multi-agent review workflow
+- **Task:** `src/latte/embed.py` (`make embed`, `make weights`), implementing section 9:
+  - frozen timm DINOv2 ViT-S/14 (`num_classes=0`) on the 512 px masked crop, resized to the model's input size;
+  - the embedding averaged over 0/90/180/270° rotations;
+  - an incremental cache in `features/emb_<model>.*`;
+  - a torchvision ResNet-50 fallback used only when the download fails;
+  - `load_embeddings(cfg)` for step 8.
+- **Key prompts (summary):** "Start step 7".
+- **Files created or changed:** `src/latte/embed.py`, `tests/test_embed.py`, `configs/default.yaml` (embed section), `requirements.txt` (torchvision pinned), `Makefile` (`weights`, ARGS for `embed`), `README.md`, `CLAUDE.md`.
+- **Verification:**
+  - `make test` passes (119 tests). The embedding tests use a small, untrained network (random weights), so nothing is downloaded. They cover:
+    - rotation invariance of the averaged embedding;
+    - cache reuse, recompute and drop;
+    - refusing a stale cache;
+    - a corrupted cache;
+    - the seed in the cache key;
+    - a typo giving an error, not a fallback;
+    - a simulated download failure falling back with a loud warning and without overwriting the main cache;
+    - both models unavailable giving one clear message.
+  - An independent review (2 lenses, 2 skeptics per finding) confirmed 10 problems, all fixed:
+    - a fallback silently repointed step 8 to ResNet features;
+    - any error, including a typo, triggered the fallback;
+    - offline, the script hung for about a minute and then crashed with a raw traceback;
+    - a corrupted cache crashed it, and cache files written non-atomically could get out of step;
+    - random-weight embeddings were saved under the real model's name;
+    - the seed was missing from the cache key;
+    - the output dimension was taken from metadata instead of measured;
+    - unchecked circles were not reported;
+    - one test assertion could never fail.
+  - **Not yet run with the real weights.** The download needs the students' OK.
+- **Changed by hand afterwards:** _(student to fill in)_

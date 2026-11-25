@@ -4,8 +4,8 @@ A phone-photo tool that scores a latte-art heart, names the features that cost i
 
 ENGR 418 (Applied Machine Learning for Engineers), UBC Okanagan, team project.
 
-> **Status (2026-11-25):** build steps 1–6 done: repo scaffold, data-collection tooling (`make_schedule`, `ingest`), blind labelling tool and agreement script, liquid-circle detection with a manual check tool, crop/mask and QA sheets, milk/crema segmentation and handcrafted features, and the go/no-go check.
-> Embeddings, models and the demo come next. This README is completed in build step 12.
+> **Status (2026-11-25):** build steps 1–7 done: repo scaffold, data-collection tooling (`make_schedule`, `ingest`), blind labelling tool and agreement script, liquid-circle detection with a manual check tool, crop/mask and QA sheets, milk/crema segmentation and handcrafted features, the go/no-go check, and cached pretrained embeddings.
+> The training/evaluation harness, feedback engine and demo come next. This README is completed in build step 12.
 
 ## Setup
 
@@ -31,6 +31,8 @@ The Makefile always calls `.venv/bin/python` directly, so you never need to acti
 | After the pilot (and any rig change) | `make features` | Milk/crema segmentation and handcrafted features → `features/features.csv`; QA overlays `results/qa/segment_*.jpg` and Otsu vs k-means `seg_compare_*.jpg` |
 | Next day | `make label` | Blind labelling in the browser (http://127.0.0.1:7860) |
 | After calibration | `make agree` | Weighted κ, Spearman ρ and mean absolute difference per rubric dimension |
+| Once, while online | `make weights` | Downloads the DINOv2 ViT-S/14 weights (about 90 MB, Hugging Face) so `make embed` works offline |
+| After ingest | `make embed` | Pretrained-network embeddings of every cup, averaged over 4 rotations and cached in `features/emb_*` (only new or changed cups are recomputed) |
 | Fri Nov 27 (≥ 30 usable cups) | `make gonogo` | Go/no-go check: feature box plots by condition, leave-one-session-out accuracy for milk condition and drop-in, spread of Overall scores, with the brief's decision rules as hints |
 
 The full pouring and photo protocol is in [docs/protocol.md](docs/protocol.md). The scoring rubric is in [docs/rubric.md](docs/rubric.md).
