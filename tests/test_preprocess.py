@@ -47,6 +47,16 @@ def test_downsampling_large_cups_and_padding_past_the_edge():
     assert edge.crop.shape == (512, 512, 3)
 
 
+def test_parts_outside_the_photo_are_not_in_the_mask():
+    img, t = cup_photo(offset=(0.55, 0.0))  # the cup runs off the right edge
+    out = prepare(img, Circle(t.cx, t.cy, t.r))
+    full = disk_mask(512).sum()
+    assert 0.6 * full < out.mask.sum() < 0.95 * full
+    assert not out.mask[:, -5:].any()  # the right edge of the crop is past the photo
+    # Nothing inside the mask is padding black.
+    assert out.crop[out.mask].max(axis=1).min() > 30
+
+
 def test_prepare_cfg_uses_config_values():
     img, t = cup_photo()
     out = prepare_cfg(img, detect_circle(img), {"preprocess": {"size": 256, "radius_shrink": 0.1}})

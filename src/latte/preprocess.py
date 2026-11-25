@@ -8,8 +8,9 @@ Given the liquid circle (cx, cy, r) in image pixels:
    ``size`` x ``size`` (512 by default). Parts of the square outside the photo
    are filled with black.
 3. Mask the disk inscribed in that square: output pixel (u, v) is inside when
-   (u + 0.5 - size/2)^2 + (v + 0.5 - size/2)^2 <= (size/2)^2. Pixels outside
-   are set to black.
+   (u + 0.5 - size/2)^2 + (v + 0.5 - size/2)^2 <= (size/2)^2, *and* it lies
+   inside the photo (a cup cut off by the frame edge loses that part). Pixels
+   outside the mask are set to black.
 
 ``scale`` = size / (2 r') is the number of output pixels per photo pixel. A
 value above 1 means the crop was upsampled, i.e. the cup covered fewer than
@@ -34,7 +35,7 @@ class Prepared:
     """A cup ready for segmentation and features."""
 
     crop: np.ndarray  # (size, size, 3) uint8 RGB, black outside the disk
-    mask: np.ndarray  # (size, size) bool, True inside the analysis disk
+    mask: np.ndarray  # (size, size) bool, True inside the analysis disk and inside the photo
     circle: Circle  # the liquid circle in photo pixels, before shrinking
     scale: float  # output px per photo px
 
@@ -82,7 +83,8 @@ def prepare(rgb: np.ndarray, circle: Circle, size: int = 512, radius_shrink: flo
         raise ValueError("circle radius must be positive")
     r_in = circle.r * (1 - radius_shrink)
     crop = crop_square(rgb, circle.cx, circle.cy, r_in, size)
-    mask = disk_mask(size)
+    in_photo = crop_square(np.full(rgb.shape[:2], 255, np.uint8), circle.cx, circle.cy, r_in, size) > 127
+    mask = disk_mask(size) & in_photo
     crop[~mask] = 0
     return Prepared(crop, mask, circle, size / (2 * r_in))
 
