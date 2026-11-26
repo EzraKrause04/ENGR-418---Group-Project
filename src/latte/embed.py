@@ -263,15 +263,35 @@ def _atomic(path: Path, write) -> None:
             os.remove(tmp)
 
 
-def load_embeddings(cfg: dict[str, Any]) -> pd.DataFrame:
-    """Embeddings for every cup in data/raw, as a DataFrame indexed by cup_id (columns emb_000, ...).
+def stale_cups(cfg: dict[str, Any], ids: pd.DataFrame, model_name: str, p: dict[str, Any]) -> list[str]:
+    """Photos in data/raw whose cached key no longer matches (photo, circle or settings changed since make embed)."""
+    pp, gp = preprocess_params(cfg), geometry_params(cfg)
+    raw = cfg_path(cfg, "raw")
+    saved = read_circles(circles_path(cfg))
+    keys = dict(zip(ids["cup_id"], ids["key"]))
+    out = []
+    for photo in list_images(raw, [".jpg"]):
+        cup = photo.stem
+        if cup not in keys:
+            continue
+        circle = resolve_circle(cup, load_rgb(photo), saved, gp, run_auto=False).circle
+        if cup_key(photo, circle, model_name, p, pp, int(cfg["seed"])) != keys[cup]:
+            out.append(cup)
+    return sorted(out, key=cup_sort_key)
 
-    It uses the configured model's cache. Only if that cache is missing or
-    doesn't cover the current photos does it use a complete ResNet-50 fallback
-    cache, with a printed warning. The returned frame has
-    ``attrs['model']`` and ``attrs['fell_back']`` set. Raises
-    FileNotFoundError (naming what is missing) when neither cache covers every
-    photo, because stale embeddings must never reach a model.
+
+def load_embeddings(cfg: dict[str, Any], verify: bool = True) -> pd.DataFrame:
+    """Cached embeddings indexed by cup_id (columns emb_000, ...), checked against data/raw.
+
+    It uses the configured model's cache. Only if that cache is missing,
+    doesn't cover every photo in data/raw, or (with ``verify``) holds an
+    embedding made from an older photo or circle, does it use a complete,
+    up-to-date ResNet-50 fallback cache, with a printed warning. The returned
+    frame has ``attrs['model']``, ``attrs['fell_back']`` and
+    ``attrs['pretrained']`` set. Rows for cups whose photo has since left
+    data/raw are kept, and callers join on their own cup list. Raises
+    FileNotFoundError (naming what is wrong) when no cache is complete and up to
+    date, because stale embeddings must never reach a model.
     """
     p = embed_params(cfg)
     pre = bool(p["pretrained"])
@@ -287,12 +307,15 @@ def load_embeddings(cfg: dict[str, Any]) -> pd.DataFrame:
         if missing:
             tried.append(f"{name}: no embedding for {len(missing)} photo(s), e.g. {', '.join(missing[:3])}")
             continue
+        stale = stale_cups(cfg, ids, name, p) if verify else []
+        if stale:
+            tried.append(f"{name}: {len(stale)} embedding(s) out of date (photo or circle changed), e.g. {', '.join(stale[:3])}")
+            continue
         if fell:
             print(f"WARNING: using the ResNet-50 fallback embeddings, because the {p['model']} cache is not "
                   f"usable ({tried[0].split(': ', 1)[1]}). Results will be labelled {FALLBACK_NAME}.", file=sys.stderr)
-        keep = ids["cup_id"].isin(cups).to_numpy()
         cols = [f"emb_{i:03d}" for i in range(emb.shape[1])]
-        df = pd.DataFrame(emb[keep], index=pd.Index(ids["cup_id"][keep], name="cup_id"), columns=cols)
+        df = pd.DataFrame(emb, index=pd.Index(ids["cup_id"], name="cup_id"), columns=cols)
         df.attrs.update(model=name, fell_back=fell, pretrained=pre, meta=meta)
         return df
     raise FileNotFoundError("no up-to-date embedding cache; run make embed. (" + "; ".join(tried) + ")")

@@ -199,3 +199,15 @@ def test_embed_with_no_photos(project, capsys):
 def test_load_embeddings_without_cache(cfg):
     with pytest.raises(FileNotFoundError, match="make embed"):
         load_embeddings(cfg)
+
+
+def test_load_embeddings_refuses_out_of_date_rows(project, cfg, photos):
+    cfg = use_tiny(project)
+    run(cfg)
+    assert load_embeddings(cfg).shape[0] == 3
+    # A circle is fixed after make embed: the cached row for that cup no longer matches.
+    append_circle(circles_path(cfg), {"cup_id": "S00-C02", "cx": 600, "cy": 420, "r": 101, "source": "manual",
+                                      "checked_by": "A", "img_w": 1024, "img_h": 768, "points": "", "timestamp": "t"})
+    with pytest.raises(FileNotFoundError, match="out of date.*S00-C02"):
+        load_embeddings(cfg)
+    assert load_embeddings(cfg, verify=False).shape[0] == 3
