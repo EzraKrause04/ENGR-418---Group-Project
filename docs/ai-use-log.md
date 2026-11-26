@@ -192,5 +192,9 @@ anything it can't know (especially "Changed by hand").
     - the output dimension was taken from metadata instead of measured;
     - unchecked circles were not reported;
     - one test assertion could never fail.
-  - **Not yet run with the real weights.** The download needs the students' OK.
+  - **2026-11-26, after the student approved the download:**
+    - `make weights` fetched `timm/vit_small_patch14_dinov2.lvd142m` (`model.safetensors`, 88 MB, from Hugging Face) into the local Hugging Face cache, outside the repo.
+    - `make embed` on the 13 synthetic sandbox cups took about 11 s, and a rerun reused all 13 from the cache.
+    - Sanity check (cosine similarity): the same heart photographed upright vs. sideways scored 0.999; a dull-milk variant 0.986; a bigger heart 0.886; the photo with no cup 0.677.
+    - Still to come: a run on real photos.
 - **Changed by hand afterwards:** _(student to fill in)_
