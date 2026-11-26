@@ -10,6 +10,7 @@
 #   make features                   segment milk vs crema, handcrafted features -> features/features.csv
 #   make gonogo                     go/no-go check (section 16): box plots, LOSO accuracy, score spread
 #   make weights / make embed       fetch DINOv2 weights once (online); embed every cup -> features/emb_*
+#   make train / make leakcheck     experiments E0-E5 (LOSO CV) / the same on shuffled labels
 #   make agree                      inter-rater agreement tables
 #   make test                       run the test suite (must pass before modelling)
 #   make all                        regenerate every table and figure from data/raw
@@ -46,10 +47,10 @@ BLOCKS  ?= 2
 ARGS    ?=
 
 .PHONY: help setup venv-check schedule ingest label circles qa features embed weights \
-        agree gonogo train final figures demo test env all clean
+        agree gonogo train leakcheck final figures demo test env all clean
 
 help:
-	@sed -n '2,18p' Makefile | sed 's/^# \{0,1\}//'
+	@sed -n '2,19p' Makefile | sed 's/^# \{0,1\}//'
 
 # --- environment ------------------------------------------------------------
 
@@ -111,7 +112,11 @@ gonogo: venv-check
 	$(PYTHON) scripts/go_no_go.py --config $(CONFIG)
 
 train: venv-check
-	$(PYTHON) scripts/train_eval.py --config $(CONFIG)
+	$(PYTHON) scripts/train_eval.py --config $(CONFIG) $(ARGS)
+
+# Same pipelines on labels shuffled within sessions: every model should land at chance.
+leakcheck: venv-check
+	$(PYTHON) scripts/train_eval.py --config $(CONFIG) --shuffle-labels
 
 final: venv-check
 	$(PYTHON) scripts/fit_final.py --config $(CONFIG)
