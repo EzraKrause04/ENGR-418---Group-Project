@@ -198,3 +198,34 @@ anything it can't know (especially "Changed by hand").
     - Sanity check (cosine similarity): the same heart photographed upright vs. sideways scored 0.999; a dull-milk variant 0.986; a bigger heart 0.886; the photo with no cup 0.677.
     - Still to come: a run on real photos.
 - **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-26: Build step 8, train/eval harness
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5), with multi-agent review workflows
+- **Task:** implement section 10:
+  - `src/latte/models.py`: pipelines and grids for the hand, emb and hand+emb feature sets, with PCA inside the pipeline;
+  - nested leave-one-session-out cross-validation and metrics in `src/latte/evaluate.py`;
+  - `scripts/train_eval.py` (`make train`) for experiments E0–E5, with run records and CSV + LaTeX tables;
+  - a shuffled-label leakage check (`make leakcheck`).
+- **Key prompts (summary):** "Start step 8".
+- **Files created or changed:** `src/latte/models.py`, `src/latte/evaluate.py`, `scripts/train_eval.py`, `src/latte/embed.py` (freshness check in `load_embeddings`), `configs/default.yaml` (`train` section), `Makefile` (`train` ARGS, `leakcheck`), `tests/fake.py`, `tests/test_train_eval.py`, `tests/test_embed.py`, `README.md`, `CLAUDE.md`.
+- **Verification:**
+  - `make test` passes (135 tests). The tests use fake studies, with and without planted signal; a test with a spy estimator confirms no test session is ever trained on.
+  - The leakage check passes on genuinely shuffled labels, including when sessions differ in average quality, and fails on a deliberately broken shuffle.
+  - On a fake 72-cup study, the planted signals are recovered. Task A: ridge_hand mean absolute error 0.45, against 0.94 for the always-guess-the-average baseline. Milk condition: logreg_hand balanced accuracy 0.90.
+  - First independent review (3 lenses, 2 skeptics per finding): 12 problems confirmed, all fixed. The main ones:
+    - the T3 human row compared rater-vs-rater MAE with model-vs-mean-label MAE, an unfair comparison that made the models look better than they are;
+    - `latest.json` was overwritten by partial runs and stored absolute paths from this laptop;
+    - stale tables survived skipped experiments;
+    - metrics.json contained invalid JSON (NaN);
+    - the E1 confidence intervals ignored that cups from one session are correlated;
+    - per-fold and E5 macro-F1 counted absent classes as 0.
+
+    Worthwhile unverified suggestions were also done: session-bootstrap CIs and an `above_chance` flag for Task B (step 9 needs it), the embedding model named in run records and captions, per-fold results for E3, and a run record for the leakage check.
+  - A second review re-ran every original failure: all fixed. It found 4 new issues, also fixed:
+    - the leakage check could flag sessions of different quality as leakage; Task A is now judged within sessions;
+    - `above_chance` read "no" when it should read "unknown" with fewer than 3 sessions;
+    - a skipped leakage check left its old table in place;
+    - write order: tables are now written only after their run record.
+  - **Not yet run on real data.**
+- **Changed by hand afterwards:** _(student to fill in)_
