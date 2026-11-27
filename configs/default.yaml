@@ -138,5 +138,8 @@ feedback:
   score_round: 0.5
   min_contribution: -0.1           # score points; fixes shown only below this
   n_fixes: 2
-  milk_prob_threshold: 0.6         # retuned so out-of-fold precision >= milk_min_precision
+  milk_prob_threshold: 0.6         # per class, raised until out-of-fold precision >= milk_min_precision
   milk_min_precision: 0.7
+  milk_min_predictions: 5          # a class needs at least this many confident OOF predictions
+  score_model: best                # best = lowest E2 pooled MAE (non-dummy), or a model name e.g. ridge_hand
+  milk_model: logreg_hand          # fixed in advance; picking the E3 winner would bias the chance test

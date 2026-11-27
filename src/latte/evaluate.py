@@ -9,8 +9,10 @@
 
 from __future__ import annotations
 
+import json
 import warnings
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -264,3 +266,14 @@ def cluster_bootstrap_ci(values: pd.DataFrame, groups: pd.Series, stat, n_boot: 
         return float("nan"), float("nan")
     lo, hi = np.quantile(vals, [alpha / 2, 1 - alpha / 2])
     return float(lo), float(hi)
+
+
+def latest_run_dir(cfg: dict[str, Any], exp: str) -> Path | None:
+    """The most recent run folder of an experiment, from results/runs/latest.json (written by make train)."""
+    from latte.io import cfg_path
+
+    path = cfg_path(cfg, "runs_dir") / "latest.json"
+    if not path.exists():
+        return None
+    entry = json.loads(path.read_text()).get("runs", {}).get(exp)
+    return cfg_path(cfg, "runs_dir") / entry["dir"] if entry else None

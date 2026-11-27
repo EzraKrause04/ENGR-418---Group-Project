@@ -1,0 +1,81 @@
+# Latte Coach feedback tips -- DRAFT from the brief (section 11). The team reviews and edits
+# this before the demo is recorded, and logs the changes below.
+#
+# fixes: for each handcrafted feature, the tip shown when that feature is one of the two
+#   biggest negative contributions to the score. "low" applies when the cup's value is below
+#   the training average (z < 0), "high" when above (z > 0). A feature/direction with no entry
+#   here is never shown as a fix: the demo only gives advice someone has written and checked.
+#   Every cause is phrased as *likely* (section 2, honesty).
+# milk: shown only when the milk-condition classifier is confident enough (feedback.py).
+# implies_milk: the cause names a milk condition. When the milk diagnosis is shown and names a
+#   *different* condition, the engine uses cause_alt/tip_alt instead (or drops the fix if
+#   there is none), so the two pieces of advice never contradict each other.
+#
+# Changelog
+# 2026-11-27  draft copied from the brief's table (Claude Code); awaiting team review
+# 2026-11-27  implies_milk / cause_alt / tip_alt added so fixes can't contradict the milk diagnosis (Claude Code)
+
+fixes:
+  contrast_dL:
+    low:
+      cause: "Milk sank: poured from too high for too long, or milk too thin"
+      tip: "Bring the spout down to the surface sooner, and aerate a little longer"
+      implies_milk: thin
+      cause_alt: "Milk sank: poured from too high for too long"
+      tip_alt: "Bring the spout down to the surface sooner"
+  contrast_michelson:
+    low:
+      cause: "Milk sank: poured from too high for too long, or milk too thin"
+      tip: "Bring the spout down to the surface sooner, and aerate a little longer"
+      implies_milk: thin
+      cause_alt: "Milk sank: poured from too high for too long"
+      tip_alt: "Bring the spout down to the surface sooner"
+  edge_sharpness:
+    low:
+      cause: "Milk too thick, or foam separated while it sat"
+      tip: "Aerate less; swirl and pour right after steaming"
+      implies_milk: thick
+      cause_alt: "Foam separated while it sat"
+      tip_alt: "Swirl and pour right after steaming"
+  boundary_roughness:
+    high:
+      cause: "Milk too thick, or foam separated while it sat"
+      tip: "Aerate less; swirl and pour right after steaming"
+      implies_milk: thick
+      cause_alt: "Foam separated while it sat"
+      tip_alt: "Swirl and pour right after steaming"
+  bubble_density:
+    high:
+      cause: "Large bubbles in the milk"
+      tip: "Purge the wand, keep the tip just under the surface, and tap and swirl before pouring"
+  texture_energy:
+    high:
+      cause: "Large bubbles in the milk"
+      tip: "Purge the wand, keep the tip just under the surface, and tap and swirl before pouring"
+  symmetry_iou:
+    low:
+      cause: "Pitcher drifted sideways, or cup tilted unevenly"
+      tip: "Keep the spout on the cup's centre line and level the cup steadily"
+  centre_offset:
+    high:
+      cause: "Design started off-centre"
+      tip: "Start the pattern in the centre of the cup"
+  coverage:
+    low:
+      cause: "Dropped in late"
+      tip: "Lower the pitcher to the surface when the cup is about half full"
+  n_components:
+    high:
+      cause: "Unsteady flow broke the pattern"
+      tip: "Keep the flow steady and don't lift the pitcher mid-design"
+
+milk:
+  thin:
+    label: "milk too thin"
+    tip: "Aerate a little longer (aim for 20-30% foam gain)"
+  good:
+    label: "milk texture about right"
+    tip: ""
+  thick:
+    label: "milk too thick"
+    tip: "Aerate less; swirl and pour right after steaming"

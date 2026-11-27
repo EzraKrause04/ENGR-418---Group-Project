@@ -73,6 +73,7 @@ from latte.evaluate import (
     agreement_table,
     classification_metrics,
     cluster_bootstrap_ci,
+    latest_run_dir,  # noqa: F401  (re-exported for callers of this script)
     nested_cv,
     regression_metrics,
     spearman,
@@ -123,6 +124,7 @@ class Study:
         self.emb_note = ""
         self.emb_cols: list[str] = []
         self.emb_info: dict[str, Any] = {"model": None, "fell_back": None, "pretrained": None}
+        self.emb_digest: str | None = None
         try:
             emb = load_embeddings(cfg)
             missing = sorted(set(self.data.index) - set(emb.index))
@@ -130,6 +132,7 @@ class Study:
                 raise FileNotFoundError(f"no embedding for {len(missing)} analysed cups, e.g. {', '.join(missing[:3])}")
             self.emb_cols = list(emb.columns)
             self.emb_info = {k: emb.attrs.get(k) for k in ("model", "fell_back", "pretrained")}
+            self.emb_digest = (emb.attrs.get("meta") or {}).get("digest")
             if emb.attrs.get("fell_back"):
                 self.emb_note = f"embeddings come from the fallback model {emb.attrs.get('model')}"
             if not emb.attrs.get("pretrained", True):
@@ -140,11 +143,22 @@ class Study:
         self.feature_sets = FEATURE_SETS if self.emb_cols else ("hand",)
         self.raters = {r: latest_labels(read_labels(labels_path(cfg, r), self.dims))
                        for r in cfg["labelling"]["raters"]}
+        self.fingerprint = self._fingerprint()
         self.shuffled = shuffle_seed is not None
         if self.shuffled:
             rng = np.random.default_rng(shuffle_seed)
             for col in ("overall", "milk_condition", "dropin", "foam_gain_pct"):
                 self.data[col] = self._shuffle_within_sessions(self.data[col], rng)
+
+    def _fingerprint(self) -> str:
+        """Hash of everything the models are fitted on: cups, features, labels, design factors, embeddings."""
+        import hashlib
+
+        cols = ["session_id", "pourer", "milk_condition", "dropin", "foam_gain_pct", *MODEL_FEATURES, *self.dims]
+        h = hashlib.sha256(self.data[cols].round(6).to_csv().encode())
+        h.update(json.dumps(self.emb_info, sort_keys=True, default=str).encode())
+        h.update(str(self.emb_digest).encode())
+        return h.hexdigest()[:16]
 
     def _shuffle_within_sessions(self, s: pd.Series, rng: np.random.Generator) -> pd.Series:
         out = s.copy()
@@ -439,7 +453,7 @@ class Recorder:
         (d / "config.yaml").write_text(yaml.safe_dump(clean, sort_keys=False))
         st = self.st
         write_json(d / "run.json", {
-            "experiment": exp, "timestamp": self.stamp, "shuffled_labels": st.shuffled,
+            "experiment": exp, "timestamp": self.stamp, "shuffled_labels": st.shuffled, "fingerprint": st.fingerprint,
             "n_cups": len(st.data), "n_sessions": int(st.data["session_id"].nunique()),
             "n_labelled": int(st.data["labelled"].sum()), "embedding": st.emb_info, "embedding_note": st.emb_note,
             "excluded": {k: len(v) for k, v in st.excluded.items()},
@@ -460,15 +474,6 @@ class Recorder:
         for stem in TABLES[exp]:
             for ext in (".csv", ".tex"):
                 (self.tables / f"{stem}{ext}").unlink(missing_ok=True)
-
-
-def latest_run_dir(cfg: dict[str, Any], exp: str) -> Path | None:
-    """The most recent run folder of an experiment, from results/runs/latest.json (for fit_final)."""
-    path = cfg_path(cfg, "runs_dir") / "latest.json"
-    if not path.exists():
-        return None
-    entry = json.loads(path.read_text()).get("runs", {}).get(exp)
-    return cfg_path(cfg, "runs_dir") / entry["dir"] if entry else None
 
 
 def save_oof(d: Path, name: str, results: dict[str, CVResult], y: pd.Series) -> None:
