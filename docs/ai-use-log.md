@@ -265,3 +265,34 @@ anything it can't know (especially "Changed by hand").
   - **Not yet run on real data.**
 - **For the team to review:** `src/latte/tips.yaml`. Its wording comes from the brief; edit it and log the change in its changelog.
 - **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-27: Build step 10, demo app
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5), with multi-agent review workflows
+- **Task:** implement section 12.
+  - `src/latte/inference.py` takes one photo and gives overlays plus feedback, mirroring training: same ingest step, auto circle, crop, segmentation, features, embedding only when needed, then `make_feedback`.
+  - `app/demo.py` (`make demo`, Gradio, http://127.0.0.1:7863) accepts an upload or webcam photo. It shows the cup found, the analysed pattern (milk outline, centroid, symmetry axis), the score as "x / 5" with its typical error, the top fixes, and the milk diagnosis, or nothing when withheld.
+- **Key prompts (summary):** "Start step 10".
+- **Files created or changed:** `src/latte/inference.py`, `app/demo.py`, `src/latte/io.py` (`to_8bit_rgb`, also used by ingest), `tests/test_demo.py`, `Makefile`, `README.md`, `CLAUDE.md`.
+- **Verification:**
+  - `make test` passes.
+  - Claude Code drove the demo in a browser on synthetic cups with models trained on a fake study: example → Analyse → overlays, score, fixes and milk panel. The numbers are meaningless with fake models.
+  - An independent review (2 lenses, 2 skeptics per finding) confirmed 9 problems, all fixed:
+    - when the rim wasn't found, the demo still showed a confident score, fixes and milk diagnosis. It now shows no score, because the models were trained only on checked circles;
+    - a crash showed a bare "Error" and wiped the overlays; the embedding model now loads at startup, with a clear message if it can't;
+    - empty "Milk" / "Top fixes" headings stayed on screen;
+    - the default examples were unlabelled training cups and could include unusable ones;
+    - 16-bit PNGs turned all white and were then scored; this was fixed in ingest too;
+    - random-weight embeddings were not seeded;
+    - already-ingested example JPEGs were compressed a second time;
+    - Gradio's upload cache was never cleared;
+    - the score line "5.0 ± 0.4 / 5" was easy to misread.
+  - A second review re-ran every original failure: all fixed. Its small follow-ups were also done:
+    - a genuine bug is no longer reported as "unreadable photo", and the traceback goes to the console;
+    - Details hides the features of a rejected crop;
+    - 32-bit float images are not contrast-stretched;
+    - missing `--examples` files are reported.
+  - `make test` passes (159 tests).
+  - **Not yet run on real photos or real models.**
+- **For the team:** record the video with held-out team photos (`make demo ARGS="--examples ..."`), or say on screen that the default examples were used for training.
+- **Changed by hand afterwards:** _(student to fill in)_
