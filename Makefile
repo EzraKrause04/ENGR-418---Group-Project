@@ -11,6 +11,7 @@
 #   make gonogo                     go/no-go check (section 16): box plots, LOSO accuracy, score spread
 #   make weights / make embed       fetch DINOv2 weights once (online); embed every cup -> features/emb_*
 #   make train / make leakcheck     experiments E0-E5 (LOSO CV) / the same on shuffled labels
+#   make final / make demo          fit the demo models / open the demo (http://127.0.0.1:7863)
 #   make agree                      inter-rater agreement tables
 #   make test                       run the test suite (must pass before modelling)
 #   make all                        regenerate every table and figure from data/raw
@@ -50,7 +51,7 @@ ARGS    ?=
         agree gonogo train leakcheck final figures demo test env all clean
 
 help:
-	@sed -n '2,19p' Makefile | sed 's/^# \{0,1\}//'
+	@sed -n '2,20p' Makefile | sed 's/^# \{0,1\}//'
 
 # --- environment ------------------------------------------------------------
 
@@ -125,7 +126,7 @@ figures: venv-check
 	$(PYTHON) scripts/make_figures.py --config $(CONFIG)
 
 demo: venv-check
-	$(PYTHON) app/demo.py --config $(CONFIG)
+	$(PYTHON) app/demo.py --config $(CONFIG) $(ARGS)
 
 test: venv-check
 	$(PYTHON) -m pytest

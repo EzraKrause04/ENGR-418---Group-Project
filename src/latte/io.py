@@ -135,6 +135,24 @@ def _is_number(s: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
+def to_8bit_rgb(im: Image.Image) -> Image.Image:
+    """RGB with 8 bits per channel. 16/32-bit modes are rescaled rather than clipped to white."""
+    if im.mode in ("I;16", "I;16B", "I;16L", "I;16N", "I", "F"):
+        a = np.asarray(im, dtype=np.float64)
+        if im.mode.startswith("I;16") or a.max() > 255:
+            hi = 65535.0 if a.max() <= 65535 else float(a.max())
+        elif im.mode == "F" and a.max() <= 1.0:
+            hi = 1.0  # float image in 0..1
+        else:
+            hi = 255.0  # already on an 8-bit scale: don't stretch the contrast
+        im = Image.fromarray(np.clip(a / hi * 255.0 + 0.5, 0, 255).astype(np.uint8), "L")
+    if im.mode in ("RGBA", "LA", "PA") or (im.mode == "P" and "transparency" in im.info):
+        bg = Image.new("RGB", im.size, (255, 255, 255))
+        bg.paste(im.convert("RGBA"), mask=im.convert("RGBA").getchannel("A"))
+        return bg
+    return im.convert("RGB")
+
+
 def strip_and_resize(src: Path, dst: Path, max_side: int, quality: int = 95) -> tuple[int, int]:
     """Write an EXIF-free, upright copy of ``src`` with longest side ``max_side``.
 
@@ -145,7 +163,7 @@ def strip_and_resize(src: Path, dst: Path, max_side: int, quality: int = 95) -> 
     """
     with Image.open(src) as im:
         im = ImageOps.exif_transpose(im)
-        im = im.convert("RGB")
+        im = to_8bit_rgb(im)
         w, h = im.size
         scale = max_side / max(w, h)
         if scale != 1:
