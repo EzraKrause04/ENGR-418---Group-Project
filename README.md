@@ -4,8 +4,8 @@ A phone-photo tool that scores a latte-art heart, names the features that cost i
 
 ENGR 418 (Applied Machine Learning for Engineers), UBC Okanagan, team project.
 
-> **Status (2026-11-27):** build steps 1–10 done: repo scaffold, data-collection tooling (`make_schedule`, `ingest`), blind labelling tool and agreement script, liquid-circle detection with a manual check tool, crop/mask and QA sheets, milk/crema segmentation and handcrafted features, the go/no-go check, cached pretrained embeddings, the train/evaluate harness (E0–E5, leakage check), the feedback engine with the final demo models, and the demo app.
-> Figures, tables and the report skeleton come next. This README is completed in build step 12.
+> **Status (2026-11-27):** build steps 1–11 done: repo scaffold, data-collection tooling (`make_schedule`, `ingest`), blind labelling tool and agreement script, liquid-circle detection with a manual check tool, crop/mask and QA sheets, milk/crema segmentation and handcrafted features, the go/no-go check, cached pretrained embeddings, the train/evaluate harness (E0–E5, leakage check), the feedback engine with the final demo models, the demo app, and the report figures, tables and LaTeX skeleton.
+> This README's results table (step 12) and a clean-clone reproducibility pass (step 13) come next. This README is completed in build step 12.
 
 ## Setup
 
@@ -38,6 +38,7 @@ The Makefile always calls `.venv/bin/python` directly, so you never need to acti
 | Before trusting results | `make leakcheck` | Re-runs the main models on labels shuffled within sessions; every model must land at chance |
 | After `make train` | `make final` | Refits the demo models on all usable cups → `models/latte_final.joblib` (score ± cross-validated error, Ridge-contribution fixes, milk diagnosis only if Task B beat chance); summary in `models/final.json` |
 | To show it off | `make demo` | The demo at http://127.0.0.1:7863: upload or take a photo → detected cup, milk outline and symmetry axis, score ± error, top two fixes, milk diagnosis (only when reliable). Example cups: the first ingested photos, or `make demo ARGS="--examples a.jpg b.jpg"` |
+| For the report | `make figures` | Figures F1–F8 (300 dpi, one IEEE column) in `results/figures/` and table T1 in `results/tables/`; `report/main.tex` is an IEEEtran skeleton (headings and table/figure hooks only) |
 
 The full pouring and photo protocol is in [docs/protocol.md](docs/protocol.md). The scoring rubric is in [docs/rubric.md](docs/rubric.md).
 

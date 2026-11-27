@@ -296,3 +296,38 @@ anything it can't know (especially "Changed by hand").
   - **Not yet run on real photos or real models.**
 - **For the team:** record the video with held-out team photos (`make demo ARGS="--examples ..."`), or say on screen that the default examples were used for training.
 - **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-27: Build step 11, figures, tables and report skeleton
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5), with multi-agent review workflows
+- **Task:**
+  - `scripts/make_figures.py` (`make figures`): figures F1–F8 as 300 dpi PNGs exactly one IEEE column (3.5 in) wide, and table T1, in the reference palette (validated for colour-vision deficiency).
+  - `report/`: an IEEEtran conference skeleton with section headings, float shells whose captions are left empty, and `\gentable`/`\genfig` hooks. **No report prose.**
+  - `src/latte/plots.py`: the shared figure style.
+- **Key prompts (summary):** "Start step 11".
+- **Files created or changed:**
+  - `scripts/make_figures.py`, `src/latte/plots.py`;
+  - `src/latte/io.py` (generated `.tex` tables are now bare tabulars; descriptive text only in a `%` comment);
+  - `report/main.tex`, `report/refs.bib`, `report/README.md`;
+  - `tests/test_figures.py`, `tests/test_train_eval.py`, `Makefile`, `README.md`, `CLAUDE.md`.
+- **Verification:**
+  - `make test` passes.
+  - On a fake 72-cup study with synthetic photos, all 8 figures and T1 were generated and inspected visually.
+  - A test checks that `report/main.tex` contains no prose: it strips every allowed construct and requires that nothing is left, and requires every caption to be empty.
+  - An independent review (2 lenses, 2 skeptics per finding) confirmed 10 problems, all fixed:
+    - **Academic integrity:** the generated LaTeX tables carried captions Claude had written, which would have printed in the report. Tables are now bare tabulars, and main.tex owns empty captions.
+    - **F5:** the band compared model-vs-mean-label error with rater-vs-rater error, which flattered the model. The band is now a single rater's MAE against the mean label, and the title gives the like-for-like numbers.
+    - **Stale figures:** run-based figures mixed old training runs with current data; they now check the data fingerprint and skip.
+    - **F3:** it used whichever agreement table it found first, even a stale one; it now prefers the fresh E0 run and prints which table it used.
+    - **LaTeX build:** the missing-file box broke the build on underscores, and the empty bibliography broke it too.
+    - **Layout:** figures were saved at inconsistent widths, so text printed at 6–8 pt; out-of-range F5 points were dropped; a 1×1 confusion matrix was drawn when only one class existed.
+    - **T1:** "photographed" counted excluded sessions.
+  - A second review re-ran every original failure: all fixed. It found a few more gaps, also closed:
+    - the data fingerprint covered only the averaged labels, so resolving a disagreement without changing the average went unnoticed; it now covers each rater's own labels (this also tightens `make final`);
+    - `make figures` crashed when the run records existed but the features file didn't;
+    - the fallback agreement table had no freshness check of its own, and `make agree` left an old table in place when there were too few cups;
+    - the skeleton test didn't check the preamble;
+    - a stray space at the end of every table, and a misleading message when F6 is skipped.
+  - No LaTeX is installed on this laptop, so the skeleton has not been compiled. Overleaf or a local TeX install is needed.
+- **For the team:** write every caption and all report text. The `%` notes at the top of each generated table describe its columns for you, and they don't print.
+- **Changed by hand afterwards:** _(student to fill in)_
