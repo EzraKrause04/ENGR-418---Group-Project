@@ -16,6 +16,7 @@
 #   make agree                      inter-rater agreement tables
 #   make test                       run the test suite (must pass before modelling)
 #   make all                        regenerate every table and figure from data/raw
+#   make repro                      clean clone of HEAD -> make setup -> make all -> compare tables
 #
 # Written for GNU Make 3.81 (the macOS default), so no 3.82+ features.
 # Recipes call $(PYTHON) directly instead of `source .venv/bin/activate`:
@@ -49,10 +50,10 @@ BLOCKS  ?= 2
 ARGS    ?=
 
 .PHONY: help setup venv-check schedule ingest label circles qa features embed weights \
-        agree gonogo train leakcheck final figures readme demo test env all clean
+        agree gonogo train leakcheck final figures readme repro demo test env all clean
 
 help:
-	@sed -n '2,21p' Makefile | sed 's/^# \{0,1\}//'
+	@sed -n '2,22p' Makefile | sed 's/^# \{0,1\}//'
 
 # --- environment ------------------------------------------------------------
 
@@ -129,6 +130,10 @@ figures: venv-check
 readme: venv-check
 	$(PYTHON) scripts/update_readme.py --config $(CONFIG)
 
+# Reproducibility pass: clean clone of HEAD -> make setup -> make all -> compare tables with this checkout.
+repro: venv-check
+	$(PYTHON) scripts/repro_check.py $(ARGS)
+
 demo: venv-check
 	$(PYTHON) app/demo.py --config $(CONFIG) $(ARGS)
 
@@ -136,7 +141,9 @@ test: venv-check
 	$(PYTHON) -m pytest
 
 # Full regeneration from data/raw (data/raw_full is not in the repo, so no ingest).
-all: test env qa features embed agree train final figures readme
+# A clean clone needs `make setup` and, once while online, `make weights` (or a committed, up-to-date
+# embedding cache in features/, in which case the network isn't needed). `make repro` checks all of this.
+all: test env qa features embed agree gonogo train leakcheck final figures readme
 
 clean:
 	rm -rf .pytest_cache src/*.egg-info

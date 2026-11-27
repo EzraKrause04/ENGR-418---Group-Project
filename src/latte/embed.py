@@ -336,6 +336,12 @@ def run(cfg: dict[str, Any], force: bool = False, fetch_only: bool = False) -> i
     if not cups and not fetch_only:
         print(f"No photos in {raw}. Run make ingest first.")
         return 0
+    if not force and not fetch_only:  # everything cached and current? Then the network isn't needed at all.
+        emb0, ids0, _, _ = load_cache(cfg, str(p["model"]), bool(p["pretrained"]))
+        if emb0 is not None and set(cups) <= set(ids0["cup_id"]) and not stale_cups(cfg, ids0, str(p["model"]), p):
+            print(f"Embeddings for all {len(cups)} cups are up to date ({p['model']}); nothing to compute, "
+                  "so the model wasn't loaded.")
+            return 0
     weights = "pretrained weights" if p["pretrained"] else "RANDOM weights (tests only; not for results)"
     print(f"Loading {p['model']} with {weights}. The first run downloads the weights; "
           "offline, the hub can take about a minute to give up.", flush=True)

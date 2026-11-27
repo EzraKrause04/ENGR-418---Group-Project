@@ -74,4 +74,4 @@ def test_agreement_script_on_fake_labels(project, cfg):
 
 def test_agreement_script_with_no_labels(project):
     r = run_script("scripts/agreement.py", project)
-    assert r.returncode == 1 and "Not enough" in r.stdout
+    assert r.returncode == 0 and "Not enough" in r.stdout  # a skip, not a failure: make all carries on

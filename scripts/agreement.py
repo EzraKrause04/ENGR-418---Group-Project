@@ -58,8 +58,8 @@ def main(argv: list[str] | None = None) -> int:
         suffix = "" if args.subset == "all" else "_calibration"
         for ext in (".csv", ".tex"):  # an old table must not pass for a new one
             (cfg_path(cfg, "tables_dir") / f"agreement{suffix}{ext}").unlink(missing_ok=True)
-        print("Not enough doubly-labelled usable cups to compute agreement yet.")
-        return 1
+        print("Not enough doubly-labelled usable cups to compute agreement yet (skipped; make all carries on).")
+        return 0
 
     seed = int(cfg["seed"])
     table = agreement_table(a.loc[keep], b.loc[keep], dims, n_boot=int(lab["bootstrap_n"]), seed=seed)

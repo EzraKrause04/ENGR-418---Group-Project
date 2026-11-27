@@ -62,6 +62,10 @@ from latte.models import classification_specs, regression_specs  # noqa: E402
 DUMMIES = ("dummy_mean", "dummy_most_frequent", "dummy_stratified")
 
 
+class NothingToFit(Exception):
+    """Not enough data for a final fit yet: a skip (exit 0, make all carries on), not a failure."""
+
+
 def read_metrics(cfg: dict[str, Any], exp: str) -> tuple[Path, dict[str, Any], dict[str, Any]]:
     d = latest_run_dir(cfg, exp)
     if d is None or not (d / "metrics.json").exists():
@@ -98,6 +102,9 @@ def main(argv: list[str] | None = None) -> int:
             (out / name).unlink()
         if removed:
             print(f"Removed the old {', '.join(removed)} so the demo can't use out-of-date models.", file=sys.stderr)
+        if isinstance(err, NothingToFit):
+            print(f"Skipped: {err}")
+            return 0
         if isinstance(err, (FileNotFoundError, ValueError)):
             print(f"ERROR: {err}", file=sys.stderr)
             return 1
@@ -117,7 +124,7 @@ def run(cfg: dict[str, Any]) -> int:
     fp = feedback_params(cfg)
     e2_dir, e2, e2_run = read_metrics(cfg, "E2")
     if "table" not in e2:
-        raise ValueError(f"the latest E2 run has no results ({e2.get('note', 'skipped')}): collect and label more cups")
+        raise NothingToFit(f"the latest E2 run has no results ({e2.get('note', 'skipped')}): collect and label more cups")
     st = train_eval.Study(cfg)
     check_fresh(st, e2_run, "E2")
     t2 = pd.DataFrame(e2["table"])
