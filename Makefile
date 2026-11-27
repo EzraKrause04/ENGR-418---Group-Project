@@ -12,7 +12,7 @@
 #   make weights / make embed       fetch DINOv2 weights once (online); embed every cup -> features/emb_*
 #   make train / make leakcheck     experiments E0-E5 (LOSO CV) / the same on shuffled labels
 #   make final / make demo          fit the demo models / open the demo (http://127.0.0.1:7863)
-#   make figures                    report figures F1-F8 (300 dpi, one column) and table T1
+#   make figures / make readme      report figures F1-F8 and table T1 / fill README's Results section
 #   make agree                      inter-rater agreement tables
 #   make test                       run the test suite (must pass before modelling)
 #   make all                        regenerate every table and figure from data/raw
@@ -49,7 +49,7 @@ BLOCKS  ?= 2
 ARGS    ?=
 
 .PHONY: help setup venv-check schedule ingest label circles qa features embed weights \
-        agree gonogo train leakcheck final figures demo test env all clean
+        agree gonogo train leakcheck final figures readme demo test env all clean
 
 help:
 	@sed -n '2,21p' Makefile | sed 's/^# \{0,1\}//'
@@ -126,6 +126,9 @@ final: venv-check
 figures: venv-check
 	$(PYTHON) scripts/make_figures.py --config $(CONFIG)
 
+readme: venv-check
+	$(PYTHON) scripts/update_readme.py --config $(CONFIG)
+
 demo: venv-check
 	$(PYTHON) app/demo.py --config $(CONFIG) $(ARGS)
 
@@ -133,7 +136,7 @@ test: venv-check
 	$(PYTHON) -m pytest
 
 # Full regeneration from data/raw (data/raw_full is not in the repo, so no ingest).
-all: test env qa features embed agree train final figures
+all: test env qa features embed agree train final figures readme
 
 clean:
 	rm -rf .pytest_cache src/*.egg-info
