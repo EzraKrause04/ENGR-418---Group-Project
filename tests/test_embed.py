@@ -116,7 +116,8 @@ def test_cache_reuse_updates_and_staleness(project, cfg, photos, capsys):
     assert info["dim"] == 512 and info["rotations"] == [0, 90, 180, 270] and not info["pretrained"]
 
     assert run(cfg) == 0
-    assert "0 computed, 3 reused" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "up to date" in out and "wasn't loaded" in out  # nothing to compute: no network needed
     assert np.array_equal(np.load(npy), first)
 
     append_circle(circles_path(cfg), {"cup_id": "S00-C01", "cx": 515, "cy": 380, "r": 120, "source": "manual",
@@ -171,7 +172,9 @@ def test_fallback_run_keeps_main_cache_and_is_loud(project, cfg, photos, capsys,
     cfg = use_tiny(project)
     run(cfg)  # main model cache, complete
     monkeypatch.setattr(E, "_timm_embedder", download_failure)
-    assert run(cfg) == 0
+    assert run(cfg) == 0  # the cache is current, so the (failing) download is never attempted
+    assert "up to date" in capsys.readouterr().out
+    assert run(cfg, force=True) == 0  # force a recompute: now the download fails and it falls back
     out = capsys.readouterr().out
     assert out.count("could not be downloaded") == 2  # at the start and repeated at the end
     assert cache_paths(cfg, "resnet50.tv_in1k", False)[0].exists()
