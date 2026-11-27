@@ -331,3 +331,28 @@ anything it can't know (especially "Changed by hand").
   - No LaTeX is installed on this laptop, so the skeleton has not been compiled. Overleaf or a local TeX install is needed.
 - **For the team:** write every caption and all report text. The `%` notes at the top of each generated table describe its columns for you, and they don't print.
 - **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-27: Build step 12, README
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5), with a review workflow
+- **Task:**
+  - Rewrote `README.md`: objective, how it works, setup, usage, layout, data protocol and privacy, attribution, and License (left as a placeholder for the team).
+  - Added `scripts/update_readme.py` (`make readme`, also in `make all`), which fills the Results section from `results/tables/`: numbers only.
+  - **Key findings and Limitations are left as headings, with HTML comments, for the students to write.**
+- **Key prompts (summary):** "Start step 12".
+- **Files created or changed:** `README.md`, `scripts/update_readme.py`, `tests/test_readme.py`, `Makefile`, `CLAUDE.md`.
+- **Verification:**
+  - `make test` passes. The tests check that the generated block is filled from fake-study tables, that the students' sections stay untouched, and that rerunning makes no further change. A separate test checks that Key findings and Limitations contain no text.
+  - An independent review checked every README claim against the code and the brief. It confirmed 8 problems, all fixed:
+    - the leakage-check line could report PASS for data it never checked;
+    - the Results block mixed old and new results; every item is now checked against the current data, or marked "out of date";
+    - the demo's ± was quoted with different rounding from what the demo shows;
+    - 2-decimal rounding hid model rankings (now 3 decimals, as in the report tables);
+    - the Objective stated uncollected facts ("both raters scored every cup, blind") and an evaluative "honest";
+    - the Generative-AI line didn't say Claude Code also wrote the README's descriptive sections;
+    - the figure list could claim missing figures;
+    - the embedding model actually used wasn't named.
+
+    Unverified suggestions also done: the experiments list is complete (hand+emb, B3), the clone command uses HTTPS for readers, and the Gradio cache wording is exact.
+- **For the team:** choose a License, and write Key findings and Limitations. The brief asks Limitations to mention that a pourer may recognize their own cups (section 7.3).
+- **Changed by hand afterwards:** _(student to fill in)_
