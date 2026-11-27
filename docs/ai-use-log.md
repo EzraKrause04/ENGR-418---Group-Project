@@ -229,3 +229,39 @@ anything it can't know (especially "Changed by hand").
     - write order: tables are now written only after their run record.
   - **Not yet run on real data.**
 - **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-27: Build step 9, feedback engine and final fit
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5), with multi-agent review workflows
+- **Task:** implement section 11.
+  - `src/latte/feedback.py`:
+    - the score, rounded to 0.5, shown with a ± that describes the rounded score;
+    - the top two fixes from the handcrafted Ridge contributions c_i = w_i·z_i;
+    - the milk diagnosis, with a separate confidence threshold for each class, or withheld entirely.
+  - `src/latte/tips.yaml`: a DRAFT copied from the brief's table, for the team to review.
+  - `scripts/fit_final.py` (`make final`): refits the demo models on all usable cups.
+- **Key prompts (summary):** "Start step 9".
+- **Files created or changed:** `src/latte/feedback.py`, `src/latte/tips.yaml`, `scripts/fit_final.py`, `scripts/train_eval.py` (data fingerprint in run.json; `latest_run_dir` moved to `latte.evaluate`), `src/latte/evaluate.py`, `configs/default.yaml` (feedback settings), `tests/test_feedback.py`, `README.md`, `CLAUDE.md`.
+- **Also this session (outside the repo):** a forwarding `Makefile` in the course folder, so `make <target>` works from there too.
+- **Verification:**
+  - `make test` passes (149 tests).
+  - On a fake study, the engine gives sensible feedback for low- and high-scoring cups. The Ridge prediction equals intercept + Σ contributions exactly.
+  - An independent review (2 lenses, 2 skeptics per finding) confirmed 10 problems, all fixed:
+    - fixes could contradict the milk diagnosis ("milk too thin" next to "Likely: milk too thick"; 23 of 72 fake cups); tips now carry non-contradicting alternatives;
+    - unmeasured (NaN) features were silently filled in and advised on; an empty milk mask produced a confident result;
+    - "No major issues found" appeared even when a large negative contribution had no reviewed tip;
+    - the same tip could fill both fix slots;
+    - choosing the best of six milk models before testing it passed 2 of 8 pure-noise studies. The model is now fixed in advance (`logreg_hand`), and 0 of 8 pass;
+    - `make final` reused E2/E3 results after the data changed, including when embeddings went missing; it now checks a data fingerprint;
+    - a failed fit left an old bundle for the demo, and a path-printing crash occurred.
+
+    Two worthwhile unverified suggestions were also done: per-class milk thresholds, and a ± computed for the rounded score.
+  - A second review re-ran every original failure: all fixed. Its remaining notes were also fixed:
+    - cleanup of the old bundle on *any* crash;
+    - file permissions;
+    - a fix no longer repeats the milk tip;
+    - ±inf now counts as unmeasured;
+    - the printed ± now matches the demo.
+  - **Not yet run on real data.**
+- **For the team to review:** `src/latte/tips.yaml`. Its wording comes from the brief; edit it and log the change in its changelog.
+- **Changed by hand afterwards:** _(student to fill in)_
