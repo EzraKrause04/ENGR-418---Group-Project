@@ -55,6 +55,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.subset == "calibration" and len(both) < len(cups):
         print(f"WARNING: calibration set not complete ({len(both)}/{len(cups)} labelled by both raters).")
     if len(keep) < 2:
+        suffix = "" if args.subset == "all" else "_calibration"
+        for ext in (".csv", ".tex"):  # an old table must not pass for a new one
+            (cfg_path(cfg, "tables_dir") / f"agreement{suffix}{ext}").unlink(missing_ok=True)
         print("Not enough doubly-labelled usable cups to compute agreement yet.")
         return 1
 

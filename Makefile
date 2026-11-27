@@ -12,6 +12,7 @@
 #   make weights / make embed       fetch DINOv2 weights once (online); embed every cup -> features/emb_*
 #   make train / make leakcheck     experiments E0-E5 (LOSO CV) / the same on shuffled labels
 #   make final / make demo          fit the demo models / open the demo (http://127.0.0.1:7863)
+#   make figures                    report figures F1-F8 (300 dpi, one column) and table T1
 #   make agree                      inter-rater agreement tables
 #   make test                       run the test suite (must pass before modelling)
 #   make all                        regenerate every table and figure from data/raw
@@ -51,7 +52,7 @@ ARGS    ?=
         agree gonogo train leakcheck final figures demo test env all clean
 
 help:
-	@sed -n '2,20p' Makefile | sed 's/^# \{0,1\}//'
+	@sed -n '2,21p' Makefile | sed 's/^# \{0,1\}//'
 
 # --- environment ------------------------------------------------------------
 

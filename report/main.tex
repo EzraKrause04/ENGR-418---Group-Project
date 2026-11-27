@@ -1,0 +1,144 @@
+% Latte Coach -- ENGR 418 technical report (IEEEtran conference, 4-6 pages).
+%
+% SKELETON ONLY (brief, section 13): section headings, float shells with EMPTY
+% captions, and hooks for the generated tables and figures. Every sentence of the
+% report -- including all captions -- is written by the students. The generated
+% .tex tables are bare tabulars (their only text is a LaTeX comment).
+% Regenerate them with:   make train && make agree && make figures
+% Build from this folder (paths are relative to report/), or upload report/ and
+% results/ side by side to Overleaf.
+
+\documentclass[conference]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage[hidelinks]{hyperref}
+
+% Include a generated table/figure if it exists; otherwise a box says what to run
+% (\detokenize keeps the underscores in file names from breaking the build).
+\newcommand{\gentable}[2]{\IfFileExists{#1}{\input{#1}}{\fbox{\parbox{0.9\linewidth}{\ttfamily\small\detokenize{missing #1 -- run #2}}}}}
+\newcommand{\genfig}[2]{\IfFileExists{#1}{\includegraphics[width=\columnwidth]{#1}}{\fbox{\parbox{0.9\columnwidth}{\ttfamily\small\detokenize{missing #1 -- run #2}}}}}
+
+\begin{document}
+
+\title{TITLE}
+\author{\IEEEauthorblockN{AUTHOR A, AUTHOR B}\IEEEauthorblockA{UBC Okanagan, ENGR 418}}
+\maketitle
+
+\begin{abstract}
+% students write
+\end{abstract}
+
+\section{Introduction}
+% students write
+
+\section{Related Work}
+% students write; add the sources you choose to refs.bib
+
+\section{Methods}
+% students write
+
+% --- generated tables and figures: move, keep or drop as needed ------------------
+\begin{table}[t]
+\centering
+\caption{}% students write
+\label{tab:dataset}
+\resizebox{\columnwidth}{!}{\gentable{../results/tables/T1_dataset.tex}{make figures}}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\genfig{../results/figures/F1_pipeline.png}{make figures}
+\caption{}% students write
+\label{fig:pipeline}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\genfig{../results/figures/F2_examples.png}{make figures}
+\caption{}% students write
+\label{fig:examples}
+\end{figure}
+
+\section{Results}
+% students write
+
+\begin{table}[t]
+\centering
+\caption{}% students write
+\label{tab:agreement}
+\resizebox{\columnwidth}{!}{\gentable{../results/tables/agreement.tex}{make agree}}
+\end{table}
+
+\begin{table*}[t]
+\centering
+\caption{}% students write
+\label{tab:taska}
+\resizebox{\textwidth}{!}{\gentable{../results/tables/T3_task_a.tex}{make train}}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\caption{}% students write
+\label{tab:taskb}
+\resizebox{\textwidth}{!}{\gentable{../results/tables/T4_task_b.tex}{make train}}
+\end{table*}
+
+\begin{table}[t]
+\centering
+\caption{}% students write
+\label{tab:ablation}
+\resizebox{\columnwidth}{!}{\gentable{../results/tables/T5_ablation.tex}{make train}}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\genfig{../results/figures/F3_agreement.png}{make figures}
+\caption{}% students write
+\label{fig:agreement}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\genfig{../results/figures/F4_feature_validity.png}{make figures}
+\caption{}% students write
+\label{fig:validity}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\genfig{../results/figures/F5_task_a.png}{make figures}
+\caption{}% students write
+\label{fig:taska}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\genfig{../results/figures/F6_confusion.png}{make figures}
+\caption{}% students write
+\label{fig:confusion}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\genfig{../results/figures/F7_importance.png}{make figures}
+\caption{}% students write
+\label{fig:importance}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\genfig{../results/figures/F8_features_by_milk.png}{make figures}
+\caption{}% students write
+\label{fig:bymilk}
+\end{figure}
+
+\section{Conclusion}
+% students write
+
+% References: uncomment both lines once refs.bib has an entry you \cite in the text
+% (BibTeX stops with an error while there is nothing to cite).
+% \bibliographystyle{IEEEtran}
+% \bibliography{refs}
+
+\end{document}

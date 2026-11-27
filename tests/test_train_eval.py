@@ -118,7 +118,8 @@ def test_full_run_finds_signal_and_writes_everything(project):
     # Fair human comparison: the rater-vs-rater MAE sits in the per-rater columns, never in "mae".
     human = t3.loc["human: rater A vs rater B"]
     assert np.isnan(human["mae"]) and human["mae_vs_A"] == human["mae_vs_B"] > 0
-    assert r"fake\_model" in (cfg_path(cfg, "tables_dir") / "T3_task_a.tex").read_text()
+    t3tex = (cfg_path(cfg, "tables_dir") / "T3_task_a.tex").read_text()
+    assert "fake_model" in t3tex.splitlines()[0] and "\\caption" not in t3tex  # note is a comment, not report text
     assert {"bal_acc_ci_lo", "bal_acc_ci_hi", "above_chance"} <= set(t4.columns)
     assert bool(t4.loc[("milk_condition", "logreg_hand"), "above_chance"])
     assert not bool(t4.loc[("milk_condition", "dummy_most_frequent"), "above_chance"])

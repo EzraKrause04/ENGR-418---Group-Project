@@ -156,6 +156,9 @@ class Study:
 
         cols = ["session_id", "pourer", "milk_condition", "dropin", "foam_gain_pct", *MODEL_FEATURES, *self.dims]
         h = hashlib.sha256(self.data[cols].round(6).to_csv().encode())
+        for r, lab in sorted(self.raters.items()):  # each rater's own scores, not just their mean
+            keep = lab.loc[lab.index.isin(self.data.index), [*self.dims, "unusable"]].sort_index()
+            h.update(f"{r}|".encode() + keep.to_csv().encode())
         h.update(json.dumps(self.emb_info, sort_keys=True, default=str).encode())
         h.update(str(self.emb_digest).encode())
         return h.hexdigest()[:16]

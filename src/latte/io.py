@@ -216,25 +216,30 @@ def tex_escape(s: str) -> str:
 
 
 def to_latex(df: pd.DataFrame, caption: str, label: str, float_fmt: str = "{:.2f}") -> str:
-    """A booktabs table for ``\\input{}`` into the IEEEtran report."""
+    """A booktabs ``tabular`` for ``\\input{}`` into the report. Tabular only: no float and no caption.
+
+    The report's captions are the students' to write (brief, sections 2 and 13),
+    so ``report/main.tex`` owns each table float and its empty ``\\caption{}``.
+    The descriptive text here goes in a LaTeX *comment* at the top, as a note to
+    the authors, and never appears in the PDF.
+    """
     def fmt(v: Any) -> str:
         if isinstance(v, float):
             return "--" if math.isnan(v) else float_fmt.format(v)
         return tex_escape(v)
 
     cols = "l" + "r" * (len(df.columns) - 1)
+    note = " ".join(str(caption).split())
     lines = [
-        r"\begin{table}[t]",
-        r"\centering",
-        rf"\caption{{{tex_escape(caption)}}}",
-        rf"\label{{{label}}}",
+        f"% Generated table (not report text): {note}",
+        f"% Suggested label: {label}",
         rf"\begin{{tabular}}{{{cols}}}",
         r"\toprule",
         " & ".join(tex_escape(c) for c in df.columns) + r" \\",
         r"\midrule",
     ]
     lines += [" & ".join(fmt(v) for v in row) + r" \\" for row in df.itertuples(index=False)]
-    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}", ""]
+    lines += [r"\bottomrule", r"\end{tabular}%", ""]  # % : no stray space inside \resizebox
     return "\n".join(lines)
 
 
