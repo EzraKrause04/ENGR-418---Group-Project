@@ -356,3 +356,29 @@ anything it can't know (especially "Changed by hand").
     Unverified suggestions also done: the experiments list is complete (hand+emb, B3), the clone command uses HTTPS for readers, and the Gradio cache wording is exact.
 - **For the team:** choose a License, and write Key findings and Limitations. The brief asks Limitations to mention that a pourer may recognize their own cups (section 7.3).
 - **Changed by hand afterwards:** _(student to fill in)_
+
+### 2026-11-27/28: Build step 13, reproducibility pass
+- **At the keyboard:** Rater A
+- **Tool:** Claude Code (Claude Opus 5.5), with a review workflow
+- **Task:** make sure `make all` from a clean clone (with `data/raw` present) regenerates every table and figure.
+  - Added `make repro` (`scripts/repro_check.py`). It clones HEAD into a temporary folder, copies in uncommitted photos only, runs `make setup` and `make all`, checks every expected output, and compares tables with the reference.
+  - `make all` now also runs the go/no-go check and the leakage check.
+  - `make agree` and `make final` treat "not enough data yet" as a skip, so `make all` carries on.
+  - `make embed` doesn't load the network when every embedding is cached and nothing has changed.
+- **Key prompts (summary):** "Start step 13".
+- **Files created or changed:** `scripts/repro_check.py`, `scripts/agreement.py`, `scripts/fit_final.py`, `src/latte/embed.py`, `Makefile`, `README.md`, `CLAUDE.md`, `tests/test_repro.py`, `tests/test_embed.py`, `tests/test_agreement.py`.
+- **Verification:**
+  - On a 72-cup fake study with synthetic photos, `make repro` ran a clean clone end to end in about 58 minutes on a loaded laptop. It exited 0; all 13 tables, 11 figures and the run records were regenerated; real DINOv2 embeddings were computed; the leakage check passed for all 12 models. E5 was skipped as designed (36 < 40 cups per pourer).
+  - The first attempt caught a test that the embed change had broken; it was fixed.
+  - Determinism: re-running features → figures in the same clone gave an identical `features.csv` and all 13 tables matched within 1e-5.
+  - An independent review (2 skeptics per finding) confirmed 7 problems, all fixed:
+    - the documented `make repro ARGS=--keep` passed `--keep` into the clone's own `make all` and broke it (options now go in `REPRO=`, and make variables are stripped);
+    - a timeout left `make all`'s child processes running and deleted the log;
+    - the check printed REPRODUCIBLE when it had compared no tables;
+    - it silently copied uncommitted labels, the cup log and the embedding cache into the "clean" clone;
+    - `--data` was compared against the wrong reference;
+    - the embedding shortcut kept removed cups and out-of-date circle status in the cache;
+    - the leakage check stopping `make all` was undocumented. It is now documented as intended.
+  - `make test` passes.
+- **For the team:** commit `data/raw`, `data/cup_log.csv`, `data/circles.csv` and `labels/`, then run `make repro` once before submitting.
+- **Changed by hand afterwards:** _(student to fill in)_
