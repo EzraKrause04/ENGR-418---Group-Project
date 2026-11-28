@@ -68,7 +68,8 @@ The Makefile always calls `.venv/bin/python` directly, so you never need to acti
 | After `make train` | `make final` | Refits the demo models on all usable cups → `models/latte_final.joblib` (summary in `models/final.json`) |
 | To show it off | `make demo` | http://127.0.0.1:7863: upload or take a photo → cup found, milk outline and symmetry axis, score ± error, top two fixes, milk diagnosis (only when reliable). Use held-out photos with `make demo ARGS="--examples a.jpg b.jpg"` |
 | For the report | `make figures`, then `make readme` | Figures F1–F8 and table T1; the Results section below is filled from `results/tables/` |
-| Everything | `make all` | `test env qa features embed agree train final figures readme` |
+| Everything | `make all` | `test env qa features embed agree gonogo train leakcheck final figures readme`; steps without enough data yet are skipped with a message |
+| Before submitting | `make repro` | Clones the committed HEAD into a temporary folder, runs `make setup` and `make all` there, and checks that every table and figure is regenerated and that each table matches this checkout |
 
 The full pouring and photo protocol is in [docs/protocol.md](docs/protocol.md). The scoring rubric is in [docs/rubric.md](docs/rubric.md), and the feedback tips are in [src/latte/tips.yaml](src/latte/tips.yaml). Interactive apps (`make label`, `make circles`, `make demo`) keep running until Ctrl-C, so start them from a normal terminal.
 
