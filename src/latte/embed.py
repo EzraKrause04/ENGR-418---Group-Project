@@ -263,12 +263,20 @@ def _atomic(path: Path, write) -> None:
             os.remove(tmp)
 
 
-def stale_cups(cfg: dict[str, Any], ids: pd.DataFrame, model_name: str, p: dict[str, Any]) -> list[str]:
-    """Photos in data/raw whose cached key no longer matches (photo, circle or settings changed since make embed)."""
+def stale_cups(cfg: dict[str, Any], ids: pd.DataFrame, model_name: str, p: dict[str, Any],
+               check_circle_status: bool = False) -> list[str]:
+    """Photos in data/raw whose cached key no longer matches (photo, circle or settings changed since make embed).
+
+    With ``check_circle_status``, a cup also counts when its recorded
+    circle_source / circle_checked differ from now. That happens when an
+    automatic circle is accepted unchanged: the embedding is still valid, but the
+    ids file is out of date.
+    """
     pp, gp = preprocess_params(cfg), geometry_params(cfg)
     raw = cfg_path(cfg, "raw")
     saved = read_circles(circles_path(cfg))
     keys = dict(zip(ids["cup_id"], ids["key"]))
+    status = dict(zip(ids["cup_id"], zip(ids["circle_source"], ids["circle_checked"])))
     out = []
     for photo in list_images(raw, [".jpg"]):
         cup = photo.stem
@@ -276,6 +284,8 @@ def stale_cups(cfg: dict[str, Any], ids: pd.DataFrame, model_name: str, p: dict[
             continue
         circle = resolve_circle(cup, load_rgb(photo), saved, gp, run_auto=False).circle
         if cup_key(photo, circle, model_name, p, pp, int(cfg["seed"])) != keys[cup]:
+            out.append(cup)
+        elif check_circle_status and status[cup] != (circle.source, "y" if circle.checked else "n"):
             out.append(cup)
     return sorted(out, key=cup_sort_key)
 
@@ -338,7 +348,9 @@ def run(cfg: dict[str, Any], force: bool = False, fetch_only: bool = False) -> i
         return 0
     if not force and not fetch_only:  # everything cached and current? Then the network isn't needed at all.
         emb0, ids0, _, _ = load_cache(cfg, str(p["model"]), bool(p["pretrained"]))
-        if emb0 is not None and set(cups) <= set(ids0["cup_id"]) and not stale_cups(cfg, ids0, str(p["model"]), p):
+        # Exactly the same cups (none added or removed) and nothing changed, circle status included.
+        if (emb0 is not None and set(cups) == set(ids0["cup_id"])
+                and not stale_cups(cfg, ids0, str(p["model"]), p, check_circle_status=True)):
             print(f"Embeddings for all {len(cups)} cups are up to date ({p['model']}); nothing to compute, "
                   "so the model wasn't loaded.")
             return 0

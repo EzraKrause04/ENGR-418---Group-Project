@@ -16,7 +16,7 @@
 #   make agree                      inter-rater agreement tables
 #   make test                       run the test suite (must pass before modelling)
 #   make all                        regenerate every table and figure from data/raw
-#   make repro                      clean clone of HEAD -> make setup -> make all -> compare tables
+#   make repro REPRO=--keep         clean clone of HEAD -> make setup -> make all -> compare tables
 #
 # Written for GNU Make 3.81 (the macOS default), so no 3.82+ features.
 # Recipes call $(PYTHON) directly instead of `source .venv/bin/activate`:
@@ -131,8 +131,10 @@ readme: venv-check
 	$(PYTHON) scripts/update_readme.py --config $(CONFIG)
 
 # Reproducibility pass: clean clone of HEAD -> make setup -> make all -> compare tables with this checkout.
+# make all stops at the first failing target -- including a leakage CHECK (exit 2), on purpose.
+REPRO ?=
 repro: venv-check
-	$(PYTHON) scripts/repro_check.py $(ARGS)
+	$(PYTHON) scripts/repro_check.py $(REPRO)
 
 demo: venv-check
 	$(PYTHON) app/demo.py --config $(CONFIG) $(ARGS)

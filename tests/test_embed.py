@@ -214,3 +214,25 @@ def test_load_embeddings_refuses_out_of_date_rows(project, cfg, photos):
     with pytest.raises(FileNotFoundError, match="out of date.*S00-C02"):
         load_embeddings(cfg)
     assert load_embeddings(cfg, verify=False).shape[0] == 3
+
+
+def test_shortcut_only_when_nothing_changed(project, cfg, photos, capsys):
+    cfg = use_tiny(project)
+    run(cfg)
+    capsys.readouterr()
+    # Accepting an automatic circle as is: same pixels, same key, but the ids file must be refreshed.
+    rgb = __import__("latte.io", fromlist=["load_rgb"]).load_rgb(cfg_path(cfg, "raw") / "S00-C01.jpg")
+    from latte.geometry import detect_circle
+
+    c = detect_circle(rgb)
+    append_circle(circles_path(cfg), {"cup_id": "S00-C01", "cx": c.cx, "cy": c.cy, "r": c.r, "source": "accepted",
+                                      "checked_by": "A", "img_w": 1024, "img_h": 768, "points": "", "timestamp": "t"})
+    run(cfg)
+    out = capsys.readouterr().out
+    assert "wasn't loaded" not in out
+    ids = __import__("pandas").read_csv(cache_paths(cfg, "resnet18", False)[1]).set_index("cup_id")
+    assert ids.at["S00-C01", "circle_source"] == "accepted" and ids.at["S00-C01", "circle_checked"] == "y"
+    # A photo removed from data/raw: the cache is rewritten without it (no shortcut).
+    (cfg_path(cfg, "raw") / "S00-C03.jpg").unlink()
+    run(cfg)
+    assert "dropped" in capsys.readouterr().out
